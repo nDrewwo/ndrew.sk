@@ -12,10 +12,10 @@ windows.forEach(function(windowElement) {
         // Toggle the display of the window content
         if (windowContent.style.display === 'none') {
             windowContent.style.display = ''; // Show the content
-            exitIcon.src = 'assets/exit.png'; // Change back to original icon
+            exitIcon.src = 'data/assets/exit.png'; // Change back to original icon
         } else {
             windowContent.style.display = 'none'; // Hide the content
-            exitIcon.src = 'assets/square.png'; // Change to a different icon
+            exitIcon.src = 'data/assets/square.png'; // Change to a different icon
         }
     });
 });

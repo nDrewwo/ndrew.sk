@@ -1,12 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap');
 
-@font-face {
-    font-family: 'Tickerbit';
-    src: url('font/Tickerbit-regular.otf') format('opentype'),
-        url('font/Tickerbit-italic.otf') format('opentype'),
-        url('font/Tickerbit-mono.otf') format('opentype'),
-        url('font/Tickerpixel-monoitalic.otf') format('opentype');
-}
 
 @media screen and (max-width: 600px) {
     main {
@@ -28,6 +21,10 @@
 
     #speci{
         display: none;
+    }
+
+    .topbar {
+        height: fit-content !important;
     }
     
 }
