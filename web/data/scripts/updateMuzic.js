@@ -1,3 +1,5 @@
+
+
 // Function to update the music status
 function updateMusicStatus(data) {
     document.getElementById('songTitle').textContent = data.name;
@@ -5,8 +7,6 @@ function updateMusicStatus(data) {
     document.getElementById('muzicstatus').textContent = data.status;
     document.getElementById('songCover').src = data.albumArt; // Update the song cover image
 }
-
-const api = 'http://localhost:3000'; // Replace with your API URL
 
 // Function to fetch data from the given endpoint
 async function fetchMusicData(url) {
@@ -21,8 +21,8 @@ async function fetchMusicData(url) {
 }
 // Main function to handle the logic
 async function handleMusicUpdate() {
-    const currentlyPlayingUrl = api + '/currently-playing'; // Replace with your API URL
-    const lastPlayedUrl = api + '/last-played'; // Replace with your API URL
+    const currentlyPlayingUrl = 'https://api.ndrew.sk/currently-playing'; // Replace with your API URL
+    const lastPlayedUrl = 'https://api.ndrew.sk/last-played'; // Replace with your API URL
 
     let data = await fetchMusicData(currentlyPlayingUrl);
 
@@ -52,5 +52,5 @@ async function handleMusicUpdate() {
     }
 }
 
-fetchMusicData(api + '/refresh-token');
+fetchMusicData('https://api.ndrew.sk/refresh-token');
 handleMusicUpdate();

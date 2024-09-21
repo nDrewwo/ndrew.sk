@@ -3,7 +3,7 @@
 @media screen and (max-width: 600px) {
     main {
         flex-direction: column;
-        width: 90vw;
+        width: 95vw !important;
     }
     
     #rightcolumn{
@@ -15,11 +15,28 @@
     }
 
     .window {
-        margin-right: 0 !important;
+        margin-right: 0 !important; 
+    }
+
+    .topbar {
+        height: fit-content !important;
     }
 
     #speci{
         display: none;
+    }
+
+    .windowContent{
+        padding: 1rem !important;
+    }
+
+    h2 {
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+
+    .windowContent img{
+        width: 100%;
     }
     
 }
@@ -48,9 +65,9 @@ body {
     background-color: #494949;
     color: #333;
     padding: 20px;
-    max-width: 90%;
     margin: auto;
     display: flex;
+    align-items: center;
     flex-direction: column;
 }
 

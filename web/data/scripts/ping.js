@@ -1,11 +1,7 @@
-// Define the API URL as a constant
-const API = 'http://localhost:3000';
-//const API = 'https://api.ndrew.sk';
-
 // Fetches the status data from /ping endpoint and updates the corresponding h2 elements
 async function fetchStatus() {
     try {
-        const response = await fetch(API + '/ping'); // Make the API request
+        const response = await fetch('https://api.ndrew.sk/ping'); // Make the API request
         const data = await response.json(); // Parse the JSON response
         // Mapping of URLs to their corresponding h2 element IDs
         const statusMap = {

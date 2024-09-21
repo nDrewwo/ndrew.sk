@@ -329,3 +329,14 @@ footer{
     display: flex;
     justify-content: space-between;
 }
+
+#coolsites{
+    display: flex;
+    justify-content: center;
+    margin: 10px;
+}
+
+#poems{
+    padding: 1rem;
+    font-size: 15px;
+}
