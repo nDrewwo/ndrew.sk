@@ -332,8 +332,14 @@ footer{
 
 #coolsites{
     display: flex;
+    flex-direction: column;
     justify-content: center;
     margin: 10px;
+}
+
+#coolsites marquee{
+    width: 100%;
+    display: flex;
 }
 
 #poems{
