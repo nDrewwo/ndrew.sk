@@ -2,6 +2,7 @@ const express = require('express');
 const fetch = require('node-fetch');
 const querystring = require('querystring');
 const cors = require('cors');
+const { error } = require('console');
 
 require('dotenv').config();
 
@@ -16,7 +17,7 @@ const refresh_token = process.env.REFRESH_TOKEN; // Store securely
 
 let access_token = process.env.ACCESS_TOKEN; // Store securely
 
-app.get('/refresh-token', (req, res) => {
+const refreshAccessToken = () => {
   const authOptions = {
     method: 'POST',
     headers: {
@@ -29,15 +30,16 @@ app.get('/refresh-token', (req, res) => {
     }),
   };
 
-  fetch('https://accounts.spotify.com/api/token', authOptions)
+  return fetch('https://accounts.spotify.com/api/token', authOptions)
     .then((response) => response.json())
     .then((data) => {
       access_token = data.access_token;
-      res.send('Access token refreshed');
+      return access_token;
     });
-});
+};
 
 app.get('/last-played', (req, res) => {
+  refreshAccessToken().then(() => {
     fetch('https://api.spotify.com/v1/me/player/recently-played?limit=1', {
       headers: {
         Authorization: 'Bearer ' + access_token,
@@ -88,8 +90,10 @@ app.get('/last-played', (req, res) => {
       res.status(500).json({ error: 'Failed to fetch last played track' });
     });
   });
+});
 
 app.get('/currently-playing', (req, res) => {
+  refreshAccessToken().then(() => {
     fetch('https://api.spotify.com/v1/me/player/currently-playing', {
       headers: {
         Authorization: 'Bearer ' + access_token,
@@ -104,18 +108,13 @@ app.get('/currently-playing', (req, res) => {
           artist: currentTrack.artists[0].name,
           albumArt: currentTrack.album.images[0].url,
         });
-      } else {
-        // Handle case where no track is currently playing
-        res.json({
-          message: "No track is currently playing",
-        });
       }
     })
     .catch(error => {
-      console.error('Error fetching currently playing track:', error);
-      res.status(500).json({ error: 'Failed to fetch currently playing track' });
+      res.status(200).json({message: "No track currently playing"}); // peak error handeling i'm too lazy to make it actually nice
     });
   });
+});
   
 
 // SPOTIFY API OVER OVER OVER OVER 

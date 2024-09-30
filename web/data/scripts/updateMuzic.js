@@ -52,5 +52,4 @@ async function handleMusicUpdate() {
     }
 }
 
-fetchMusicData('https://api.ndrew.sk/refresh-token');
 handleMusicUpdate();
