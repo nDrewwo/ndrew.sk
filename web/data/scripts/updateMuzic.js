@@ -1,5 +1,3 @@
-
-
 // Function to update the music status
 function updateMusicStatus(data) {
     document.getElementById('songTitle').textContent = data.name;
@@ -8,7 +6,7 @@ function updateMusicStatus(data) {
     document.getElementById('songCover').src = data.albumArt; // Update the song cover image
 }
 
-// Function to fetch data from the given endpoint
+// Function to fetch data from the new endpoint
 async function fetchMusicData(url) {
     try {
         const response = await fetch(url);
@@ -19,36 +17,24 @@ async function fetchMusicData(url) {
         return null;
     }
 }
+
 // Main function to handle the logic
 async function handleMusicUpdate() {
-    const currentlyPlayingUrl = 'https://api.ndrew.sk/currently-playing'; // Replace with your API URL
-    const lastPlayedUrl = 'https://api.ndrew.sk/last-played'; // Replace with your API URL
+    const musicUrl = 'https://api.ndrew.sk/music'; // Replace with your server endpoint
 
-    let data = await fetchMusicData(currentlyPlayingUrl);
+    const data = await fetchMusicData(musicUrl);
 
     if (data && data.name && data.artist && data.albumArt) {
-        // Update with currently playing info
+        // Update with currently playing or last played info
         updateMusicStatus({
             name: data.name,
             artist: data.artist,
             albumArt: data.albumArt,
-            status: 'Currently playing'
+            status: data.playedAt ? `Last played ${data.playedAt}` : 'Currently playing'
         });
     } else {
-        // Fetch last played info if the currently playing info is incomplete
-        data = await fetchMusicData(lastPlayedUrl);
-        if (data && data.name && data.artist && data.albumArt && data.playedAt) {
-            // Update with last played info
-            updateMusicStatus({
-                name: data.name,
-                artist: data.artist,
-                albumArt: data.albumArt,
-                status: `Last played ${data.playedAt}`
-            });
-        } else {
-            // Handle case where both endpoints fail or provide incomplete data
-            console.error('Both endpoints returned incomplete data.');
-        }
+        // Handle case where the endpoint provides incomplete data
+        console.error('Endpoint returned incomplete data.');
     }
 }
 

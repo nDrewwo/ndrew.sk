@@ -11,7 +11,7 @@ const port = process.env.PORT;
 
 app.use(cors());
 
-const client_id =  process.env.CLIENT_ID;
+const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const refresh_token = process.env.REFRESH_TOKEN; // Store securely
 
@@ -38,68 +38,28 @@ const refreshAccessToken = () => {
     });
 };
 
-app.get('/last-played', (req, res) => {
-  refreshAccessToken().then(() => {
-    fetch('https://api.spotify.com/v1/me/player/recently-played?limit=1', {
-      headers: {
-        Authorization: 'Bearer ' + access_token,
-      },
+app.get('/music', (req, res) => {
+  refreshAccessToken()
+    .then(() => {
+      return fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+        headers: {
+          Authorization: 'Bearer ' + access_token,
+        },
+      });
     })
-    .then(response => response.json())
-    .then(data => {
-      if (data.items && data.items.length > 0) {
-        const lastTrack = data.items[0].track;
-        const playedAt = new Date(data.items[0].played_at); // Get the played_at timestamp
-        const now = new Date();
-        
-        // Calculate time difference (in milliseconds)
-        const timeDiff = now - playedAt;
-        
-        // Convert to minutes, hours, etc.
-        const seconds = Math.floor(timeDiff / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const hours = Math.floor(minutes / 60);
-        const days = Math.floor(hours / 24);
-        
-        let timeAgo = '';
-        if (days > 0) {
-          timeAgo = `${days} day(s) ago`;
-        } else if (hours > 0) {
-          timeAgo = `${hours} hour(s) ago`;
-        } else if (minutes > 0) {
-          timeAgo = `${minutes} minute(s) ago`;
-        } else {
-          timeAgo = `${seconds} second(s) ago`;
-        }
-  
-        res.json({
-          name: lastTrack.name,
-          artist: lastTrack.artists[0].name,
-          albumArt: lastTrack.album.images[0].url,
-          playedAt: timeAgo,  // Include time ago
+    .then(response => {
+      if (response.status === 204) {
+        // No content, fetch recently played track
+        return fetch('https://api.spotify.com/v1/me/player/recently-played?limit=1', {
+          headers: {
+            Authorization: 'Bearer ' + access_token,
+          },
         });
-      } else {
-        // Handle case where no recent track data is available
-        res.json({
-          message: "No recently played track found",
-        });
+      } else if (!response.ok) {
+        throw new Error('Failed to fetch currently playing track');
       }
+      return response.json();
     })
-    .catch(error => {
-      console.error('Error fetching last played track:', error);
-      res.status(500).json({ error: 'Failed to fetch last played track' });
-    });
-  });
-});
-
-app.get('/currently-playing', (req, res) => {
-  refreshAccessToken().then(() => {
-    fetch('https://api.spotify.com/v1/me/player/currently-playing', {
-      headers: {
-        Authorization: 'Bearer ' + access_token,
-      },
-    })
-    .then(response => response.json())
     .then(data => {
       if (data && data.item) {
         const currentTrack = data.item;
@@ -108,14 +68,57 @@ app.get('/currently-playing', (req, res) => {
           artist: currentTrack.artists[0].name,
           albumArt: currentTrack.album.images[0].url,
         });
+      } else {
+        return fetch('https://api.spotify.com/v1/me/player/recently-played?limit=1', {
+          headers: {
+            Authorization: 'Bearer ' + access_token,
+          },
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch recently played track');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.items && data.items.length > 0) {
+            const lastTrack = data.items[0].track;
+            const playedAt = new Date(data.items[0].played_at);
+            const now = new Date();
+            const timeDiff = now - playedAt;
+            const seconds = Math.floor(timeDiff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            let timeAgo = '';
+            if (days > 0) {
+              timeAgo = `${days} day(s) ago`;
+            } else if (hours > 0) {
+              timeAgo = `${hours} hour(s) ago`;
+            } else if (minutes > 0) {
+              timeAgo = `${minutes} minute(s) ago`;
+            } else {
+              timeAgo = `${seconds} second(s) ago`;
+            }
+            res.json({
+              name: lastTrack.name,
+              artist: lastTrack.artists[0].name,
+              albumArt: lastTrack.album.images[0].url,
+              playedAt: timeAgo,
+            });
+          } else {
+            res.status(404).json({
+              message: "No recently played track found",
+            });
+          }
+        });
       }
     })
     .catch(error => {
-      res.status(200).json({message: "No track currently playing"}); // peak error handeling i'm too lazy to make it actually nice
+      console.error('Error:', error.message);
+      res.status(500).json({ error: error.message });
     });
-  });
 });
-  
 
 // SPOTIFY API OVER OVER OVER OVER 
 
