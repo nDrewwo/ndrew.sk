@@ -346,3 +346,60 @@ footer{
     padding: 1rem;
     font-size: 15px;
 }
+
+#chat{
+    display: flex;
+    flex-direction: column;
+    height: 200px;
+}
+
+#chat-history{
+    height: 75%;
+}
+
+#chat-input{
+    height: 25%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#chat-input input{
+    width: 95%;
+    height: 65%;
+    border: 2px solid #7CB0FF;
+    color: #7CB0FF;
+    background-color: #333;
+    outline: none;
+    padding: 5px;
+    font-family: 'Tickerbit';
+}
+
+#chat-input input::placeholder{
+    color: #7CB0FF;
+    opacity: 1;
+}
+
+#chat-history{
+    margin-top: 5px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: auto;
+}
+
+.message{
+    display: flex;
+    width: 95%;
+    margin: 0;
+}
+
+.name{
+    color: #7CB0FF;
+}
+
+.msgContent{
+    margin-left: 5px;
+}
