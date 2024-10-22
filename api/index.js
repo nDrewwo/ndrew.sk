@@ -3,6 +3,9 @@ const fetch = require('node-fetch');
 const querystring = require('querystring');
 const cors = require('cors');
 const { error } = require('console');
+const WebSocket = require('ws');
+const mariadb = require('mariadb');
+const xss = require('xss');
 
 require('dotenv').config();
 
@@ -149,6 +152,133 @@ app.get('/ping', async (req, res) => {
   res.json(statuses);
 });
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+// ====== CHAT SYSTEM INTEGRATION START ======
+
+// Create a pool to connect to MariaDB
+const pool = mariadb.createPool({
+    host: process.env.DB_HOST, 
+    user: process.env.DB_USER, 
+    password: process.env.DB_PASS, 
+    database: 'chat_db',
+    connectionLimit: 5
 });
+
+const xssOptions = {
+  whiteList: {},
+  stripIgnoreTag: true,
+  stripIgnoreTagBody: ['script']
+};
+
+const wss = new WebSocket.Server({ noServer: true });
+const correctPassword = process.env.USER_PASS; // Replace with the actual password
+
+// Generate a random anonymous username
+function generateAnonymousUsername() {
+    return `anonymous${Math.floor(Math.random() * 10000)}`;
+}
+
+// Handle login sequence
+function handleLogin(ws) {
+    ws.send(JSON.stringify({ system: true, message: 'Welcome, ndrew! You have successfully logged in.' }));
+    // Additional login logic can be added here
+}
+
+// Handle WebSocket connection for the chat system
+wss.on('connection', (ws) => {
+    // Assign a default username when a user connects
+    ws.username = generateAnonymousUsername();
+    ws.send(JSON.stringify({ system: true, message: `You are known as ${ws.username}. Use /nick <new_name> to change.` }));
+
+    // On receiving a new message from a client
+    ws.on('message', async (data) => {
+        const { message } = JSON.parse(data);
+
+        // Sanitize the message to prevent XSS
+        const sanitizedMessage = xss(message, xssOptions);
+
+        // Check if it's a /nick command
+        if (sanitizedMessage.startsWith('/nick ')) {
+            const newUsername = sanitizedMessage.split(' ')[1];
+
+            // Sanitize the new username to prevent XSS
+            const sanitizedUsername = xss(newUsername);
+
+            if (sanitizedUsername) {
+                // Check if the new username is "ndrew"
+                if (sanitizedUsername === 'ndrew') {
+                    ws.username = sanitizedUsername;
+                    ws.awaitingPassword = true;
+                    ws.send(JSON.stringify({ system: true, message: 'Please enter your password using /password <password>' }));
+                } else {
+                    // Broadcast the username change
+                    const oldUsername = ws.username;
+                    ws.username = sanitizedUsername;
+
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({
+                                system: true,
+                                message: `${oldUsername} is now known as ${ws.username}`
+                            }));
+                        }
+                    });
+                }
+            }
+        } else if (sanitizedMessage.startsWith('/password ')) {
+            const enteredPassword = sanitizedMessage.split(' ')[1];
+
+            if (ws.awaitingPassword) {
+                if (enteredPassword === correctPassword) {
+                    handleLogin(ws);
+                    ws.awaitingPassword = false;
+                } else {
+                    ws.send(JSON.stringify({ system: true, message: 'Incorrect password. Please try again.' }));
+                }
+            }
+        } else {
+            // Normal message, save to database and broadcast to all clients
+            const username = ws.username;
+
+            try {
+                const conn = await pool.getConnection();
+                await conn.query('INSERT INTO messages (username, message) VALUES (?, ?)', [username, sanitizedMessage]);
+                conn.release();
+
+                // Broadcast the message to all connected clients
+                wss.clients.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({ username, message: sanitizedMessage }));
+                    }
+                });
+            } catch (err) {
+                console.error('Database error:', err);
+            }
+        }
+    });
+});
+
+// Fetch chat history from the database
+app.get('/messages', async (req, res) => {
+    try {
+        const conn = await pool.getConnection();
+        const rows = await conn.query('SELECT * FROM messages ORDER BY timestamp ASC');
+        conn.release();
+        res.json(rows);
+    } catch (err) {
+        console.error('Database error:', err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+// WebSocket upgrade for chat
+const server = app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+});
+
+server.on('upgrade', (request, socket, head) => {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+    });
+});
+
+// ====== CHAT SYSTEM INTEGRATION END ======
