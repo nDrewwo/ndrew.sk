@@ -1,6 +1,6 @@
 const ws = new WebSocket('ws://localhost:3002');
 // const api_chat = 'http://localhost:3002';
-const api_chat = 'https://api-ndrew.sk/';
+const api_chat = 'https://api-ndrew.sk';
 let currentUsername = '';
 
 // Load chat history on page load
