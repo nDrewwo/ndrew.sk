@@ -183,7 +183,7 @@ app.post('/vaha', async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
-    await conn.query("INSERT INTO People (name, weight) VALUES (?, ?)", [name, weight]);
+    await conn.query("INSERT INTO People (weight) VALUES (?)", [weight]);
     res.redirect('https://ndrew.sk'); 
   } catch (err) {
     res.status(500).json({ error: err.message });
