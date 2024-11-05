@@ -3,6 +3,7 @@ const fetch = require('node-fetch');
 const querystring = require('querystring');
 const cors = require('cors');
 const mariadb = require('mariadb');
+const bodyParser = require('body-parser');
 
 
 require('dotenv').config();
@@ -10,6 +11,8 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT;
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
 const client_id = process.env.CLIENT_ID;
@@ -168,6 +171,20 @@ app.get('/media', async (req, res) => {
     conn = await pool.getConnection();
     const rows = await conn.query("SELECT * FROM media");
     res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+app.post('/vaha', async (req, res) => {
+  const { name, weight } = req.body;
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    await conn.query("INSERT INTO People (name, weight) VALUES (?, ?)", [name, weight]);
+    res.redirect('https://ndrew.sk'); 
   } catch (err) {
     res.status(500).json({ error: err.message });
   } finally {
