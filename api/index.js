@@ -2,10 +2,8 @@ const express = require('express');
 const fetch = require('node-fetch');
 const querystring = require('querystring');
 const cors = require('cors');
-const { error } = require('console');
-const WebSocket = require('ws');
 const mariadb = require('mariadb');
-const xss = require('xss');
+
 
 require('dotenv').config();
 
@@ -152,17 +150,31 @@ app.get('/ping', async (req, res) => {
   res.json(statuses);
 });
 
-// Create a pool to connect to MariaDB
+// nDB OVER OVER OVER OVER
+
+// Create a connection pool
 const pool = mariadb.createPool({
-    host: process.env.DB_HOST, 
-    user: process.env.DB_USER, 
-    password: process.env.DB_PASS, 
-    database: 'chat_db',
-    connectionLimit: 5
+  host: process.env.DB_HOST, 
+  user: process.env.DB_USER, 
+  password: process.env.DB_PASS, 
+  database: 'nDB',
+  connectionLimit: 5
 });
 
-const xssOptions = {
-  whiteList: {},
-  stripIgnoreTag: true,
-  stripIgnoreTagBody: ['script']
-};
+// API endpoint to get all data from the media table
+app.get('/media', async (req, res) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query("SELECT * FROM media");
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
