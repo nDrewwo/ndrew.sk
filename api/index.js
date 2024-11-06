@@ -174,6 +174,48 @@ app.get('/media', async (req, res) => {
   }
 });
 
+// API endpoint to get all data from the media table
+app.get('/anime', async (req, res) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query("SELECT title,author,status,rating,cover_image FROM media WHERE type = 'anime'");
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+// API endpoint to get all data from the media table
+app.get('/manga', async (req, res) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query("SELECT title,author,status,rating,cover_image FROM media WHERE type = 'manga'");
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+// API endpoint to get all data from the media table
+app.get('/movies', async (req, res) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query("SELECT title,author,status,rating,cover_image FROM media WHERE type = 'movie'");
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
 app.get('/', (req, res) => {
   res.send('api.ndrew.sk is up and running!');
 });

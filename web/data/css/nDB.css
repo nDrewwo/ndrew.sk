@@ -87,13 +87,24 @@ main {
 
 .nContainer{
     display: flex;
+    align-items: center;
     margin: 0.5rem;
+    min-width: 200px;
+    max-width: 280px;
 }
 
 .nContainer img{
     width: auto;
     height: 150px;
     aspect-ratio: 3/4;
+}
+
+.nContainer h1{
+    font-size: large;
+}
+
+.nContainer h2{
+    font-size: medium;
 }
 
 .nInfo{
@@ -107,8 +118,9 @@ main {
     color: #7CB0FF;
 }
 
-#manga {
+#manga, #anime, #movies {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: auto;
 }
+
