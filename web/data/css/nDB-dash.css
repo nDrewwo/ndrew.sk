@@ -1,46 +1,5 @@
 @import url('https://fonts.cdnfonts.com/css/minecraft-3');
 
-@media screen and (max-width: 600px) {
-    main {
-        flex-direction: column;
-        width: 95vw !important;
-    }
-    
-    #rightcolumn{
-        width: 100% !important;
-    }
-
-    #leftcolumn{
-        width: 100% !important;
-    }
-
-    .window {
-        margin-right: 0 !important; 
-    }
-
-    .topbar {
-        height: fit-content !important;
-    }
-
-    #speci{
-        display: none;
-    }
-
-    .windowContent{
-        padding: 1rem !important;
-    }
-
-    h2 {
-        margin-top: 15px;
-        margin-bottom: 15px;
-    }
-
-    .windowContent img{
-        width: 100%;
-    }
-    
-}
-
 * {
     margin: 0;
     padding: 0;
@@ -65,23 +24,20 @@ body {
     background-color: #494949;
     color: #333;
     padding: 20px;
+    max-width: 900px;
     margin: auto;
     display: flex;
-    align-items: center;
     flex-direction: column;
 }
 
 
 main {
     display: flex;
-    justify-content: center;
-    width: 100%;
+    justify-content: center;;
 }
-
 
 .window{
     background-color: #333;
-    width: 100%;
     margin: 0.5rem;
     margin-left: 0;
     border: solid;
@@ -123,26 +79,4 @@ main {
 
 .windowContent{
     height: fit-content;
-    padding: 1rem;
-}
-
-img {
-    max-width: 100%;
-    height: auto;
-    margin: 10px 0;
-}
-
-.href {
-    color: #7CB0FF;
-    text-decoration: none;
-}
-
-.href:hover {
-    color: #7CB0FF;
-    text-decoration: underline;
-}
-
-h2 {
-    font-size: 2rem;
-    color: #7CB0FF;
 }
