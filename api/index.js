@@ -124,7 +124,7 @@ app.get('/music', (req, res) => {
 
 const urls = [
   'https://ndrew.sk',
-  'https://obedik.ndrew.sk',
+  'https://adinomart.ndrew.sk',
   'https://quotes.ndrew.sk'
 ];
 

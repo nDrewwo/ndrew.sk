@@ -6,7 +6,7 @@ async function fetchStatus() {
         // Mapping of URLs to their corresponding h2 element IDs
         const statusMap = {
             "https://ndrew.sk": "ndrewSkStatus",
-            "https://obedik.ndrew.sk": "obedikStatus",
+            "https://adinomart.ndrew.sk": "adinoMartStatus",
             "https://quotes.ndrew.sk": "quotesStatus"
         };
         // Iterate over the response and update the corresponding elements
