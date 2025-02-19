@@ -3,6 +3,7 @@ const fetch = require('node-fetch');
 const querystring = require('querystring');
 const cors = require('cors');
 const mariadb = require('mariadb');
+const qrcode = require('qrcode');
 
 require('dotenv').config();
 
@@ -10,6 +11,7 @@ const app = express();
 const port = process.env.PORT;
 
 app.use(cors());
+app.use(express.json()); // To parse JSON bodies
 
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
@@ -213,6 +215,20 @@ app.get('/movies', async (req, res) => {
     res.status(500).json({ error: err.message });
   } finally {
     if (conn) conn.release();
+  }
+});
+
+app.post('/generate-qr', async (req, res) => {
+  const { url } = req.body;
+  if (!url) {
+    return res.status(400).json({ error: 'URL is required' });
+  }
+
+  try {
+    const qrCodeDataUrl = await qrcode.toDataURL(url);
+    res.json({ qrCode: qrCodeDataUrl });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temporary CDN</title>
+    <link rel="stylesheet" href="data/css/cdn.css">
+</head>
+<body>
+    <div class="window">
+        <div class="topbar">
+            <div class="nametag">
+                <h1>Temporary CDN</h1>
+            </div>
+            <img src="data/assets/exit.png" alt="imagegoezhere" class="exiticon">
+        </div>
+        <div class="windowContent">
+            <form id="uploadForm" enctype="multipart/form-data" method="POST" action="http://localhost:3000/upload">
+                <input type="file" id="fileInput" style="display: none;" required>
+                <button type="button" id="fileButton">Select File</button>
+                <select name="time" id="time">
+                    <option value="hour">1 Hour</option>
+                    <option value="6hours">6 Hours</option>
+                    <option value="12hours">12 Hours</option>
+                    <option value="day">A day</option>
+                </select>
+                <div id="fileList"></div>
+                <button type="submit">Upload File</button>
+            </form>
+        </div>
+    </div>
+    <div id="share"></div>
+    <body>
+    <script src="data/js/filelist.js"></script>
+</html>

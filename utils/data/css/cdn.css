@@ -1,0 +1,138 @@
+@import url('https://fonts.cdnfonts.com/css/minecraft-3');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #7CB0FF;
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #494949;
+}
+
+body {
+    font-family: 'Minecraft', sans-serif;
+    background-color: #494949;
+    color: #333;
+    padding: 20px;
+    max-width: 900px;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.window{
+    background-color: #333;
+    margin: 0.5rem;
+    margin-left: 0;
+    border: solid;
+    border-color: #7CB0FF;
+    color: #f3f4f5;
+    display: flex;
+    flex-direction: column;
+}
+
+.topbar {
+    background-color: #7CB0FF;
+    color: #000;
+    font-size: 14px;
+    height: 30px;
+    width: 100%;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.exiticon{
+    margin-right: 5px;
+    cursor: pointer;
+    height: 24px;
+    width: 24px;
+}
+
+.nametag {
+    margin-left: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.nametag img{
+    height: 24px;
+    width: 24px;
+    margin-left: 10px;
+}
+
+.windowContent{
+    height: fit-content;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 1rem;
+}
+
+form{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+button{
+    border: none;
+    margin: 0.5rem;
+    background-color: #7CB0FF;
+    color: #000;
+    width: 95%;
+    cursor: pointer;
+    font-family: 'Minecraft', sans-serif;
+    font-size: medium;
+    height: 2.3rem;
+}
+
+select {
+    border: solid 2px #7CB0FF;
+    width: 95%;
+    color: #f3f4f5;
+    background-color: #333;
+    outline: none;
+    font-family: 'Minecraft', sans-serif;
+    height: 2.3rem;
+    margin: 0.5rem;
+}
+
+#teoria{
+    padding: 1.5rem;
+}
+
+.jump{
+    color: #7CB0FF;
+    text-decoration: none;
+}
+
+.jump:hover{
+    text-decoration: underline;
+}
+
+.windowContent img {
+    aspect-ratio: 1/1;
+    height: 300px;
+}
+
+#fileButton{
+    background-color: #333;
+    color: #7CB0FF;
+    border: #7CB0FF solid 2px;
+}

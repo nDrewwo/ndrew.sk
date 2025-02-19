@@ -1,10 +1,17 @@
 const express = require('express');
 const path = require('path');
 const compression = require('compression');
+const multer = require('multer');
+const fs = require('fs');
+const schedule = require('node-schedule');
+const cors = require('cors');
 
 const app = express();
 
 require('dotenv').config();
+
+// Enable CORS
+app.use(cors());
 
 // Enable gzip compression to reduce the file sizes
 app.use(compression());
@@ -19,7 +26,7 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Start the server
-const PORT = process.env.PORT
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
     console.log(`CDN server is running on port http://localhost:${PORT}`);
 });
