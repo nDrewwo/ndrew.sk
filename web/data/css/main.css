@@ -1,6 +1,4 @@
-@import url("./main.css");
-
-/* Page-specific styles below */
+@import url("https://cdn.ndrew.sk/fonts/Monocraft.ttc");
 
 * {
     margin: 0;
@@ -8,7 +6,22 @@
     box-sizing: border-box;
 }
 
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #7CB0FF;
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #494949;
+}
+
 body {
+    font-family: 'Monocraft', sans-serif;
+    font-size: medium;
     background-color: #494949;
     color: #333;
     padding: 20px;
@@ -18,26 +31,7 @@ body {
     flex-direction: column;
 }
 
-
-main {
-    display: flex;
-    justify-content: center;;
-}
-
-marquee {
-    width: 100%;
-}
-
-#rightcolumn{
-    width: 35%;
-}
-
-#leftcolumn{
-    width: 65%;
-}
-
-
-.window{
+.window {
     background-color: #333;
     margin: 0.5rem;
     margin-left: 0;
@@ -57,10 +51,14 @@ marquee {
     margin: 0;
     display: flex;
     align-items: center;
-    justify-content: space-between;     
+    justify-content: space-between;
 }
 
-.exiticon{
+.topbar h1{
+    margin-left: 5px;
+}
+
+.exiticon {
     margin-right: 5px;
     cursor: pointer;
     height: 24px;
@@ -72,12 +70,23 @@ marquee {
     align-items: center;
 }
 
-.nametag img{
+.nametag img {
     height: 24px;
     width: 24px;
     margin-left: 10px;
 }
 
-.windowContent{
+.windowContent {
     height: fit-content;
+}
+
+.href {
+    margin-top: 5px ;
+    text-decoration: none;
+    color: #7CB0FF;
+    transition-duration: 0.3s;
+}
+
+.href:hover {
+    text-decoration: underline;
 }

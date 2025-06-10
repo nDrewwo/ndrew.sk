@@ -1,5 +1,6 @@
-@import url("http://cdn.ndrew.sk/fonts/GohuFont11NerdFontMono-Regular.ttf");
+@import url("./main.css");
 
+/* Page-specific styles below */
 
 @media screen and (max-width: 600px) {
     main {
@@ -45,36 +46,6 @@
     }
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-::-webkit-scrollbar {
-    width: 5px; 
-}
-
-::-webkit-scrollbar-thumb {
-    background-color: #7CB0FF; 
-    border-radius: 6px; 
-}
-
-::-webkit-scrollbar-track {
-    background-color: #494949; 
-}
-
-body {
-    font-family: 'GohuFont 11 Nerd Font' , sans-serif;
-    background-color: #494949;
-    padding: 20px;
-    max-width: 900px;
-    margin: auto;
-    display: flex;
-    flex-direction: column;
-}
-
-
 main {
     display: flex;
     justify-content: center;;
@@ -92,50 +63,10 @@ marquee {
     width: 65%;
 }
 
-
-.window{
-    background-color: #333;
-    margin: 0.5rem;
-    margin-left: 0;
-    border: solid;
-    border-color: #7CB0FF;
-    color: #f3f4f5;
+#yap{
     display: flex;
     flex-direction: column;
-}
-
-.topbar {
-    background-color: #7CB0FF;
-    color: #000;
-    font-size: 14px;
-    height: 30px;
-    width: 100%;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;     
-}
-
-.exiticon{
-    margin-right: 5px;
-    cursor: pointer;
-    height: 24px;
-    width: 24px;
-}
-
-.nametag {
-    display: flex;
-    align-items: center;
-}
-
-.nametag img{
-    height: 24px;
-    width: 24px;
-    margin-left: 10px;
-}
-
-.windowContent{
-    height: fit-content;
+    margin: 10px;
 }
 
 #aboutme{
@@ -150,26 +81,6 @@ marquee {
     margin-left: 10px;
     border: solid;
     border-color: #7CB0FF;      
-}
-
-/* TO BE CUT */
-
-#yap{
-    display: flex;
-    flex-direction: column;
-    margin: 10px;
-}
-
-.href {
-    margin-top: 5px ;
-    text-decoration: none;
-    color: #f3f4f5;
-    transition-duration: 0.3s;
-}
-
-.href:hover {
-    color: #7CB0FF;
-    text-decoration: underline;
 }
 
 #qotd{
@@ -193,15 +104,6 @@ marquee {
     height: 20px;
     width: 20px;
     margin-right: 10px;
-}
-
-.jump{
-    color: #7CB0FF;
-    text-decoration: none;
-}
-
-.jump:hover{
-    text-decoration: underline;
 }
 
 .article{
