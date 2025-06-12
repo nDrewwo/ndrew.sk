@@ -1,4 +1,98 @@
-@import url("https://cdn.ndrew.sk/fonts/Monocraft.ttc");
+@font-face {
+    font-family: 'Monocraft';
+    src: url('https://cdn.ndrew.sk/fonts/Monocraft/Monocraft-Italic.woff2') format('woff2');
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Monocraft';
+    src: url('https://cdn.ndrew.sk/fonts/Monocraft/Monocraft-Black-Italic.woff2') format('woff2');
+    font-weight: 900;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Monocraft';
+    src: url('https://cdn.ndrew.sk/fonts/Monocraft/Monocraft-ExtraLight-Italic.woff2') format('woff2');
+    font-weight: 200;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Monocraft';
+    src: url('https://cdn.ndrew.sk/fonts/Monocraft/Monocraft.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Monocraft';
+    src: url('https://cdn.ndrew.sk/fonts/Monocraft/Monocraft-Light.woff2') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Monocraft';
+    src: url('https://cdn.ndrew.sk/fonts/Monocraft/Monocraft-Black.woff2') format('woff2');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Monocraft';
+    src: url('https://cdn.ndrew.sk/fonts/Monocraft/Monocraft-Bold.woff2') format('woff2');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Monocraft';
+    src: url('https://cdn.ndrew.sk/fonts/Monocraft/Monocraft-Bold-Italic.woff2') format('woff2');
+    font-weight: bold;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Monocraft';
+    src: url('https://cdn.ndrew.sk/fonts/Monocraft/Monocraft-ExtraLight.woff2') format('woff2');
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Monocraft';
+    src: url('https://cdn.ndrew.sk/fonts/Monocraft/Monocraft-SemiBold-Italic.woff2') format('woff2');
+    font-weight: 600;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Monocraft';
+    src: url('https://cdn.ndrew.sk/fonts/Monocraft/Monocraft-Light-Italic.woff2') format('woff2');
+    font-weight: 300;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Monocraft';
+    src: url('https://cdn.ndrew.sk/fonts/Monocraft/Monocraft-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
 
 * {
     margin: 0;
