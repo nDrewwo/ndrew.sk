@@ -44,6 +44,10 @@
     .projectheading img{
         display: none;
     }
+
+    #profile{
+        display: none;
+    }
 }
 
 main {
