@@ -3,7 +3,6 @@ const fetch = require('node-fetch');
 const querystring = require('querystring');
 const cors = require('cors');
 const mariadb = require('mariadb');
-const qrcode = require('qrcode');
 
 require('dotenv').config();
 
