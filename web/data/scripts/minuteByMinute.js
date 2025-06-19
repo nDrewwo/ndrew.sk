@@ -1,6 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Example API endpoint (replace with your real one)
-    // const apiUrl = "http://localhost:3002/minute-by-minute";
     const apiUrl = "https://api.ndrew.sk/minute-by-minute";
 
     // Function to format the timestamp (optional, you can adjust this)
