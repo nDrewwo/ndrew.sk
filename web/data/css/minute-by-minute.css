@@ -1,0 +1,13 @@
+#minute-by-minute{
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.rowNews{
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.timeStamp{
+    color: #7CB0FF;
+}

@@ -15,9 +15,18 @@ app.use(express.json()); // To parse JSON bodies
 
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
-const refresh_token = process.env.REFRESH_TOKEN; // Store securely
+const refresh_token = process.env.REFRESH_TOKEN; 
 
-let access_token = process.env.ACCESS_TOKEN; // Store securely
+let access_token = process.env.ACCESS_TOKEN; 
+
+// Connection Pool
+const pool = mariadb.createPool({
+  host: process.env.DB_HOST, 
+  user: process.env.DB_USER, 
+  password: process.env.DB_PASS, 
+  database: 'ndrew',
+  connectionLimit: 5
+});
 
 const refreshAccessToken = () => {
   const authOptions = {
@@ -144,25 +153,13 @@ const checkUrlStatus = async (url) => {
   }
 };
 
-// API route to ping URLs and return status
+// API endpoint to ping URLs and return status
 app.get('/ping', async (req, res) => {
   const statusPromises = urls.map(url => checkUrlStatus(url));
   const statuses = await Promise.all(statusPromises);
   res.json(statuses);
 });
 
-// nDB OVER OVER OVER OVER
-
-// Create a connection pool
-const pool = mariadb.createPool({
-  host: process.env.DB_HOST, 
-  user: process.env.DB_USER, 
-  password: process.env.DB_PASS, 
-  database: 'nDB',
-  connectionLimit: 5
-});
-
-// API endpoint to get all data from the media table
 app.get('/media', async (req, res) => {
   let conn;
   try {
@@ -176,7 +173,6 @@ app.get('/media', async (req, res) => {
   }
 });
 
-// API endpoint to get all data from the media table
 app.get('/anime', async (req, res) => {
   let conn;
   try {
@@ -190,7 +186,6 @@ app.get('/anime', async (req, res) => {
   }
 });
 
-// API endpoint to get all data from the media table
 app.get('/manga', async (req, res) => {
   let conn;
   try {
@@ -204,7 +199,6 @@ app.get('/manga', async (req, res) => {
   }
 });
 
-// API endpoint to get all data from the media table
 app.get('/movies', async (req, res) => {
   let conn;
   try {
@@ -218,19 +212,45 @@ app.get('/movies', async (req, res) => {
   }
 });
 
-app.post('/generate-qr', async (req, res) => {
-  const { url } = req.body;
-  if (!url) {
-    return res.status(400).json({ error: 'URL is required' });
-  }
-
+app.get('/feature-toggles', async (req, res) => {
+  let conn;
   try {
-    const qrCodeDataUrl = await qrcode.toDataURL(url);
-    res.json({ qrCode: qrCodeDataUrl });
+    conn = await pool.getConnection();
+    const rows = await conn.query('SELECT name, value FROM featureToggle');
+    res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Database error', details: err.message });
+  } finally {
+    if (conn) await conn.release();
   }
 });
+
+app.get('/breaking-news', async (req, res) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query("SELECT news_text FROM breaking_news ORDER BY created_at DESC LIMIT 1");
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+app.get('/minute-by-minute', async (req, res) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query("SELECT created_at, news_text FROM breaking_news ORDER BY created_at ASC");
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
 
 app.get('/', (req, res) => {
   res.send('api.ndrew.sk is up and running!');
