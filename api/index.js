@@ -213,6 +213,7 @@ app.get('/movies', async (req, res) => {
 });
 
 app.get('/feature-toggles', async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
   let conn;
   try {
     conn = await pool.getConnection();
@@ -226,6 +227,8 @@ app.get('/feature-toggles', async (req, res) => {
 });
 
 app.get('/breaking-news', async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
   let conn;
   try {
     conn = await pool.getConnection();
