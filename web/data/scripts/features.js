@@ -1,7 +1,7 @@
 // const FEATURE_TOGGLE_URL = 'http://localhost:3000/feature-toggles';
 // const BREAKING_NEWS_URL = 'http://localhost:3000/breaking-news';
 const FEATURE_TOGGLE_URL = 'https://api.ndrew.sk/feature-toggles';
-const BREAKING_NEWS_URL = 'https:///breaking-news';
+const BREAKING_NEWS_URL = 'https://api.ndrew.sk/breaking-news';
 
 const CACHE_KEY_FEATURES = 'featureToggles';
 const CACHE_KEY_NEWS = 'breakingNews';

@@ -3,7 +3,7 @@ async function fetchStatus() {
     try {
         const response = await fetch('https://api.ndrew.sk/ping'); // Make the API request
         const data = await response.json(); // Parse the JSON response
-        // Mapping of URLs to their corresponding h2 element IDs
+        // Mapping of URLs to their corresponding h2 element 
         const statusMap = {
             "https://ndrew.sk": "ndrewSkStatus",
             "https://adinomart.ndrew.sk": "adinoMartStatus",
@@ -23,4 +23,4 @@ async function fetchStatus() {
 }
 
 // Call the function when the page loads
-window.onload = fetchStatus;
+window.onload = fetchStatus();
