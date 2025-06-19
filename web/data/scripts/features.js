@@ -58,7 +58,6 @@ function renderBreakingNews() {
       <div class="topbar">
         <div class="nametag">
           <h1>Breaking News</h1>
-          <img src="data/assets/crown.png" alt="imagegoezhere">
         </div>
         <img src="data/assets/exit.png" alt="imagegoezhere" class="exiticon">
       </div>

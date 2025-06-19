@@ -1,21 +1,17 @@
-// Select all the window elements
-const windows = document.querySelectorAll('.window');
+// Use event delegation to handle clicks on any .exiticon, even if added later
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('exiticon')) {
+        const windowElement = event.target.closest('.window');
+        if (!windowElement) return;
+        const windowContent = windowElement.querySelector('.widowContent');
+        if (!windowContent) return;
 
-// Loop through each window and add event listeners
-windows.forEach(function(windowElement) {
-    // Find the exit icon and window content within the current window
-    const exitIcon = windowElement.querySelector('.exiticon');
-    const windowContent = windowElement.querySelector('.widowContent');
-
-    // Add a click event listener to the exit icon
-    exitIcon.addEventListener('click', function() {
-        // Toggle the display of the window content
         if (windowContent.style.display === 'none') {
-            windowContent.style.display = ''; // Show the content
-            exitIcon.src = 'data/assets/exit.png'; // Change back to original icon
+            windowContent.style.display = '';
+            event.target.src = 'data/assets/exit.png';
         } else {
-            windowContent.style.display = 'none'; // Hide the content
-            exitIcon.src = 'data/assets/square.png'; // Change to a different icon
+            windowContent.style.display = 'none';
+            event.target.src = 'data/assets/square.png';
         }
-    });
+    }
 });

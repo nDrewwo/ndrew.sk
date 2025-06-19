@@ -11,3 +11,9 @@
 .timeStamp{
     color: #7CB0FF;
 }
+
+@media screen and (max-width: 600px) {
+    .topbar{
+        font-size: smaller;
+    }
+}
