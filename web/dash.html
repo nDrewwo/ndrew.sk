@@ -8,6 +8,27 @@
     <link rel="icon" href="data/assets/icon.png">
 </head>
 <body>
+    <script>
+        const auth = 'http://localhost:5500/web/auth.html';
+        // const auth = 'https://ndrew.sk/auth';
+        const validateToken = 'http://localhost:3002/validate-token';
+        // const validateToken = 'https://api.ndrew.sk/validate-token';
+
+
+        fetch(validateToken, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include' // Include cookies in the request
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Invalid token');
+            }
+        })
+        .catch(() => {
+            window.location.href = auth;
+        });
+    </script>
     <div class="window">
         <div class="topbar">
             <div class="nametag">

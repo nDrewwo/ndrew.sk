@@ -1,22 +1,66 @@
 const express = require('express');
 const fetch = require('node-fetch');
-const querystring = require('querystring');
 const cors = require('cors');
 const mariadb = require('mariadb');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 
 require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT;
 
-app.use(cors());
+// app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5500', // Your frontend origin
+  credentials: true
+}));
 app.use(express.json()); // To parse JSON bodies
+app.use(cookieParser());
 
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 const refresh_token = process.env.REFRESH_TOKEN; 
 
 let access_token = process.env.ACCESS_TOKEN; 
+
+const JWT_SECRET = process.env.JWT_SECRET
+const STATIC_PASSWORD = process.env.STATIC_PASSWORD
+
+// Middleware to protect routes
+const authenticateToken = (req, res, next) => {
+  const token = req.cookies.token; // Read token from cookies
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ error: 'Forbidden' });
+    req.user = user;
+    next();
+  });
+};
+
+// Login endpoint
+app.post('/login', (req, res) => {
+  const { password } = req.body;
+  if (password === STATIC_PASSWORD) {
+    const token = jwt.sign({ username: 'admin' }, JWT_SECRET, { expiresIn: '1h' });
+    res.cookie('token', token, { httpOnly: true, secure: false }); // Set token in HTTP-only cookie
+    res.json({ message: 'Login successful' });
+  } else {
+    res.status(401).json({ error: 'Invalid password' });
+  }
+});
+
+// Validate token endpoint
+app.post('/validate-token', (req, res) => {
+  const token = req.cookies.token; // Read token from cookies
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  jwt.verify(token, JWT_SECRET, (err) => {
+    if (err) return res.status(403).json({ error: 'Invalid token' });
+    res.status(200).json({ message: 'Token is valid' });
+  });
+});
 
 // Connection Pool
 const pool = mariadb.createPool({
@@ -34,7 +78,7 @@ const refreshAccessToken = () => {
       'Authorization': 'Basic ' + (Buffer.from(client_id + ':' + client_secret).toString('base64')),
       'Content-Type': 'application/x-www-form-urlencoded',
     },
-    body: querystring.stringify({
+    body: new URLSearchParams({
       grant_type: 'refresh_token',
       refresh_token: refresh_token,
     }),
