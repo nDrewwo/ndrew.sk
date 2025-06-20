@@ -1,3 +1,7 @@
+@import url("./main.css");
+
+/* Page-specific styles below */
+
 #minute-by-minute{
     padding-left: 1rem;
     padding-right: 1rem;

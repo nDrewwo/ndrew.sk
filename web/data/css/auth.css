@@ -2,12 +2,6 @@
 
 /* Page-specific styles below */
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 body {
     background-color: #494949;
     color: #333;
@@ -68,34 +62,4 @@ body {
     align-items: center;
     flex-direction: column;
     padding: 1rem;
-}
-
-#loginForm{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-input{
-    margin: 0.5rem;
-    padding: 0.5rem;
-    border: solid 2px #7CB0FF;
-    width: 95%;
-    color: #f3f4f5;
-    background-color: #333;
-    outline: none;
-    font-family: 'Minecraft', sans-serif;
-}
-
-button{
-    margin-bottom: 0.5rem;
-    padding: 0.5rem;
-    border: none;
-    background-color: #7CB0FF;
-    color: #000;
-    width: 95%;
-    cursor: pointer;
-    font-family: 'Minecraft', sans-serif;
-    font-size: medium;
 }
