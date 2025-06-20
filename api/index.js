@@ -10,11 +10,12 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT;
 
-// app.use(cors());
-app.use(cors({
-  origin: 'http://localhost:5500',
-  credentials: true
-}));
+app.use(cors());
+// app.use(cors({
+//   origin: 'http://localhost:5500',
+//   credentials: true
+// }));
+
 app.use(express.json()); // To parse JSON bodies
 app.use(cookieParser());
 
@@ -297,6 +298,46 @@ app.get('/minute-by-minute', async (req, res) => {
   }
 });
 
+// Endpoint to update feature toggles
+app.post('/update-feature-toggles', authenticateToken, async (req, res) => {
+  const toggles = req.body.toggles; // Expecting an array of { name, value }
+  if (!Array.isArray(toggles)) {
+    return res.status(400).json({ error: 'Invalid request format' });
+  }
+
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const updatePromises = toggles.map(toggle => 
+      conn.query('UPDATE featureToggle SET value = ? WHERE name = ?', [toggle.value, toggle.name])
+    );
+    await Promise.all(updatePromises);
+    res.status(200).json({ message: 'Feature toggles updated successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Database error', details: err.message });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+// Endpoint to add breaking news
+app.post('/add-breaking-news', authenticateToken, async (req, res) => {
+  const { news_text } = req.body; // Expecting { news_text: "Some news" }
+  if (!news_text || typeof news_text !== 'string') {
+    return res.status(400).json({ error: 'Invalid news text' });
+  }
+
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    await conn.query('INSERT INTO breaking_news (news_text) VALUES (?)', [news_text]);
+    res.status(201).json({ message: 'Breaking news added successfully' });
+  } catch (err) {
+    res.status(500).json({ error: 'Database error', details: err.message });
+  } finally {
+    if (conn) conn.release();
+  }
+});
 
 app.get('/', (req, res) => {
   res.send('api.ndrew.sk is up and running!');

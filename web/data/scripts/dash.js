@@ -1,14 +1,13 @@
-const auth = 'http://localhost:5500/web/auth.html';
-// const auth = 'https://ndrew.sk/auth';
-const validateToken = 'http://localhost:3002/validate-token';
-// const validateToken = 'https://api.ndrew.sk/validate-token';
-
+const auth = 'https://ndrew.sk/auth';
+const validateToken = 'https://api.ndrew.sk/validate-token';
+const addBreakingNewsEndpoint = 'https://api.ndrew.sk/add-breaking-news';
 const featureTogglesEndpoint = 'https://api.ndrew.sk/feature-toggles';
+const updateFeatures = 'https://api.ndrew.sk/update-feature-toggles'
 
 fetch(validateToken, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include' // Include cookies in the request
+    credentials: 'include' 
 })
 .then(response => {
     if (!response.ok) {
@@ -52,7 +51,62 @@ fetch(featureTogglesEndpoint)
             featureDiv.appendChild(label);
             form.insertBefore(featureDiv, updateButton);
         });
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const toggles = Array.from(document.querySelectorAll('.feature')).map(feature => {
+                const name = feature.querySelector('h2').textContent;
+                const value = feature.querySelector('input[type="checkbox"]').checked ? 1 : 0;
+                return { name, value };
+            });
+
+            fetch(updateFeatures, { // Update endpoint URL
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // Include cookies for authentication
+                body: JSON.stringify({ toggles })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to update feature toggles');
+                }
+                alert('Feature toggles updated successfully');
+            })
+            .catch(error => {
+                console.error('Error updating feature toggles:', error.message);
+                alert('Error updating feature toggles');
+            });
+        });
     })
     .catch(error => {
         console.error('Error loading feature toggles:', error.message);
     });
+
+document.getElementById('newsForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const newsText = document.getElementById('news').value.trim();
+    if (!newsText) {
+        alert('Please enter news text');
+        return;
+    }
+
+    fetch(addBreakingNewsEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Include cookies for authentication
+        body: JSON.stringify({ news_text: newsText })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to add breaking news');
+        }
+        alert('Breaking news added successfully');
+        document.getElementById('news').value = ''; // Clear the input field
+    })
+    .catch(error => {
+        console.error('Error adding breaking news:', error.message);
+        alert('Error adding breaking news');
+    });
+});
