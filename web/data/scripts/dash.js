@@ -1,13 +1,19 @@
-const auth = 'https://ndrew.sk/auth';
-const validateToken = 'https://api.ndrew.sk/validate-token';
-const addBreakingNewsEndpoint = 'https://api.ndrew.sk/add-breaking-news';
-const featureTogglesEndpoint = 'https://api.ndrew.sk/feature-toggles';
-const updateFeatures = 'https://api.ndrew.sk/update-feature-toggles'
+const auth = 'http://localhost:5500/web/auth.html';
+// const auth = 'https://ndrew.sk/auth';
+
+const validateToken = 'http://localhost:3002/validate-token';
+// const validateToken = 'https://api.ndrew.sk/validate-token';
+
+const featureTogglesEndpoint = 'http://localhost:3002/feature-toggles';
+// const featureTogglesEndpoint = 'https://api.ndrew.sk/feature-toggles';
+
+const updateFeatureTogglesEndpoint = 'http://localhost:3002/update-feature-toggles'; 
+// const updateFeatureTogglesEndpoint = 'https://api.ndrew.sk/update-feature-toggles'; 
 
 fetch(validateToken, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include' 
+    credentials: 'include' // Include cookies in the request
 })
 .then(response => {
     if (!response.ok) {
@@ -61,7 +67,7 @@ fetch(featureTogglesEndpoint)
                 return { name, value };
             });
 
-            fetch(updateFeatures, { // Update endpoint URL
+            fetch(updateFeatureTogglesEndpoint, { // Use constant for update endpoint
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include', // Include cookies for authentication
@@ -82,31 +88,3 @@ fetch(featureTogglesEndpoint)
     .catch(error => {
         console.error('Error loading feature toggles:', error.message);
     });
-
-document.getElementById('newsForm').addEventListener('submit', (event) => {
-    event.preventDefault();
-
-    const newsText = document.getElementById('news').value.trim();
-    if (!newsText) {
-        alert('Please enter news text');
-        return;
-    }
-
-    fetch(addBreakingNewsEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // Include cookies for authentication
-        body: JSON.stringify({ news_text: newsText })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to add breaking news');
-        }
-        alert('Breaking news added successfully');
-        document.getElementById('news').value = ''; // Clear the input field
-    })
-    .catch(error => {
-        console.error('Error adding breaking news:', error.message);
-        alert('Error adding breaking news');
-    });
-});

@@ -10,11 +10,14 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT;
 
-app.use(cors());
-// app.use(cors({
-//   origin: 'http://localhost:5500',
-//   credentials: true
-// }));
+const corsOptions = {
+  origin: (origin, callback) => {
+    callback(null, origin || '*'); // Allow any origin
+  },
+  credentials: true, // Allow cookies
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json()); // To parse JSON bodies
 app.use(cookieParser());

@@ -1,5 +1,8 @@
-const loginEndpoint = 'https://api.ndrew.sk/login';
-const protectedDash = 'https://ndrew.sk/dash';
+const loginEndpoint = 'http://localhost:3002/login';
+// const loginEndpoint = 'https://api.ndrew.sk/login';
+const protectedDash = 'http://localhost:5500/web/dash.html';
+// const protectedDash = 'https://ndrew.sk/dash';
+
 
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
