@@ -17,8 +17,6 @@
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.2",
     "mariadb": "^3.3.2",
-    "node-fetch": "^2.7.0",
-    "qrcode": "^1.5.4",
-    "querystring": "^0.2.1"
+    "node-fetch": "^2.7.0"
   }
 }
