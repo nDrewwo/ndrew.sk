@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const apiUrl = "https://api.ndrew.sk/minute-by-minute";
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const apiUrl = isLocalhost ? "http://localhost:3002/minute-by-minute" : "https://api.ndrew.sk/minute-by-minute";
 
     // Function to format the timestamp (optional, you can adjust this)
     function formatTimestamp(isoString) {

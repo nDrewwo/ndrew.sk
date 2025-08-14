@@ -20,7 +20,8 @@ async function fetchMusicData(url) {
 
 // Main function to handle the logic
 async function handleMusicUpdate() {
-    const musicUrl = 'https://api.ndrew.sk/music'; // Replace with your server endpoint
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const musicUrl = isLocalhost ? 'http://localhost:3002/music' : 'https://api.ndrew.sk/music';
 
     const data = await fetchMusicData(musicUrl);
 

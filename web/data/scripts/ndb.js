@@ -4,10 +4,12 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAndDisplayData('/movies', 'movies');
 });
 
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
 async function fetchAndDisplayData(endpoint, containerId) {
     try {
-        const response = await fetch(`https://api.ndrew.sk${endpoint}`);
-        // const response = await fetch(`http://localhost:3002${endpoint}`);
+        const baseUrl = isLocalhost ? 'http://localhost:3002' : 'https://api.ndrew.sk';
+        const response = await fetch(`${baseUrl}${endpoint}`);
         const data = await response.json();
         const container = document.getElementById(containerId);
 

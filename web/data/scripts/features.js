@@ -1,7 +1,7 @@
-// const FEATURE_TOGGLE_URL = 'http://localhost:3000/feature-toggles';
-// const BREAKING_NEWS_URL = 'http://localhost:3000/breaking-news';
-const FEATURE_TOGGLE_URL = 'https://api.ndrew.sk/feature-toggles';
-const BREAKING_NEWS_URL = 'https://api.ndrew.sk/breaking-news';
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+const FEATURE_TOGGLE_URL = isLocalhost ? 'http://localhost:3002/feature-toggles' : 'https://api.ndrew.sk/feature-toggles';
+const BREAKING_NEWS_URL = isLocalhost ? 'http://localhost:3002/breaking-news' : 'https://api.ndrew.sk/breaking-news';
 
 const CACHE_KEY_FEATURES = 'featureToggles';
 const CACHE_KEY_NEWS = 'breakingNews';

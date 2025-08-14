@@ -9,7 +9,13 @@ app.use(cors());
 require('dotenv').config();
 
 // Enable gzip compression to reduce the file sizes
-app.use(compression());
+app.use(compression({
+    filter: (req, res) => {
+        const contentType = res.getHeader('Content-Type') || '';
+        if (req.url.endsWith('.zip')) return false; // don't compress zip files
+        return compression.filter(req, res); // default filter
+    }
+}));
 
 // Set cache headers for static files (e.g., images, CSS, JS)
 app.use((req, res, next) => {
