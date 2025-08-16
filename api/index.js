@@ -24,6 +24,7 @@ const mediaRouter = require('./routes/media');
 const featureToggleRouter = require('./routes/featureToggle');
 const breakingNewsRouter = require('./routes/breakingNews');
 const pingRouter = require('./routes/ping');
+const cdnRouter = require('./routes/cdn'); 
 
 // Use routers
 app.use('/', authRouter);
@@ -32,6 +33,7 @@ app.use('/', mediaRouter);
 app.use('/', featureToggleRouter);
 app.use('/', breakingNewsRouter);
 app.use('/', pingRouter);
+app.use('/', cdnRouter); 
 
 app.get('/', (req, res) => {
   res.send('api.ndrew.sk is up and running!');

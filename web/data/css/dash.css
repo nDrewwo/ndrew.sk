@@ -2,7 +2,7 @@
 
 /* Page-specific styles below */
 
-.feature{
+.feature {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -50,16 +50,279 @@
     transition: .4s;
 }
 
-input:checked + .slider {
+input:checked+.slider {
     background-color: #7CB0FF;
 }
 
-input:focus + .slider {
+input:focus+.slider {
     box-shadow: 0 0 1px #7CB0FF;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
     -webkit-transform: translateX(26px);
     -ms-transform: translateX(26px);
     transform: translateX(26px);
+}
+
+/* ...existing styles... */
+
+.file-browser {
+    padding: 0.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Custom scrollbar for CDN browser */
+.file-browser::-webkit-scrollbar {
+    width: 8px;
+}
+
+.file-browser::-webkit-scrollbar-track {
+    background: #333;
+}
+
+.file-browser::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+.file-browser::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
+
+.breadcrumb {
+    background-color: #555;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: 3px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.breadcrumb-item {
+    color: #7CB0FF;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.breadcrumb-item:hover {
+    text-decoration: underline;
+}
+
+.breadcrumb-separator {
+    margin: 0 5px;
+    color: #ccc;
+}
+
+.file-list {
+    list-style: none;
+    padding: 0;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    border-bottom: 1px solid #555;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.file-item:hover {
+    background-color: #444;
+}
+
+.file-info {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.file-name {
+    font-weight: bold;
+}
+
+.file-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.action-btn {
+    background: #7CB0FF;
+    color: #000;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: 'Monocraft', sans-serif;
+    min-width: 80px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.action-btn:hover {
+    background: #6ba3ff;
+}
+
+.delete-btn {
+    background: #f44336 !important;
+    color: #fff !important;
+}
+
+.delete-btn:hover {
+    background: #d32f2f !important;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #7CB0FF;
+}
+
+/* Custom confirmation dialog */
+.confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.confirm-dialog {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 1.5rem;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    font-family: 'Monocraft', sans-serif;
+}
+
+.confirm-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.confirm-icon {
+    width: 24px;
+    height: 24px;
+    background: #f44336;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.confirm-title {
+    color: #f44336;
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.confirm-message {
+    color: #ccc;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    font-size: 14px;
+}
+
+.confirm-warning {
+    background: #4a2c2c;
+    border: 1px solid #f44336;
+    border-radius: 4px;
+    padding: 0.75rem;
+    margin: 1rem 0;
+    color: #ffcdd2;
+    font-size: 12px;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.confirm-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Monocraft', sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.confirm-btn-cancel {
+    background: #555;
+    color: #fff;
+}
+
+.confirm-btn-cancel:hover {
+    background: #666;
+}
+
+.confirm-btn-delete {
+    background: #f44336;
+    color: #fff;
+}
+
+.confirm-btn-delete:hover {
+    background: #d32f2f;
+}
+
+/* Mobile styles for confirmation dialog */
+@media (max-width: 768px) {
+    .confirm-dialog {
+        margin: 20px;
+        max-width: none;
+        width: calc(100% - 40px);
+    }
+    
+    .confirm-title {
+        font-size: 16px;
+    }
+    
+    .confirm-message {
+        font-size: 16px;
+    }
+    
+    .confirm-warning {
+        font-size: 14px;
+    }
+    
+    .confirm-btn {
+        padding: 0.75rem 1.25rem;
+        font-size: 14px;
+        min-height: 44px;
+    }
+    
+    .confirm-actions {
+        flex-direction: column-reverse;
+        gap: 12px;
+    }
+    
+    /* Mobile styles for file browser action buttons */
+    .action-btn {
+        padding: 8px 16px;
+        font-size: 12px;
+        min-width: 90px;
+        min-height: 36px;
+    }
 }
