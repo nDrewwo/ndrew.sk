@@ -59,7 +59,15 @@ class CDNBrowser {
             breadcrumbItems.push(`<span class="breadcrumb-item" data-path="${currentPath}">${part}</span>`);
         });
 
-        return `<div class="breadcrumb">${breadcrumbItems.join('')}</div>`;
+        return `
+            <div class="breadcrumb-container">
+                <div class="breadcrumb">${breadcrumbItems.join('')}</div>
+                <div class="breadcrumb-actions">
+                    <button class="action-btn create-folder-btn" onclick="cdnBrowser.showCreateFolderDialog()">+ Folder</button>
+                    <button class="action-btn upload-file-btn" onclick="cdnBrowser.showUploadDialog()">+ Upload</button>
+                </div>
+            </div>
+        `;
     }
 
     renderFileItem(item) {
@@ -120,6 +128,299 @@ class CDNBrowser {
                 });
             }
         });
+    }
+
+    showCreateFolderDialog() {
+        return new Promise((resolve) => {
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'confirm-overlay';
+            
+            // Create dialog
+            const dialog = document.createElement('div');
+            dialog.className = 'confirm-dialog';
+            
+            dialog.innerHTML = `
+                <div class="confirm-header">
+                    <h3 class="confirm-title">Create New Folder</h3>
+                </div>
+                <div class="confirm-message">
+                    <input type="text" id="folder-name-input" placeholder="Folder name" class="folder-name-input" maxlength="100">
+                </div>
+                <div class="confirm-actions">
+                    <button class="confirm-btn confirm-btn-cancel">Cancel</button>
+                    <button class="confirm-btn confirm-btn-create">Create Folder</button>
+                </div>
+            `;
+            
+            // Add event listeners
+            const cancelBtn = dialog.querySelector('.confirm-btn-cancel');
+            const createBtn = dialog.querySelector('.confirm-btn-create');
+            const input = dialog.querySelector('#folder-name-input');
+            
+            const cleanup = () => {
+                document.body.removeChild(overlay);
+                document.body.style.overflow = '';
+            };
+            
+            const handleCreate = async () => {
+                const folderName = input.value.trim();
+                if (!folderName) {
+                    this.showToast('Please enter a folder name', '#f44336');
+                    return;
+                }
+                
+                cleanup();
+                await this.createFolder(folderName);
+                resolve(true);
+            };
+            
+            cancelBtn.addEventListener('click', () => {
+                cleanup();
+                resolve(false);
+            });
+            
+            createBtn.addEventListener('click', handleCreate);
+            
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    handleCreate();
+                }
+            });
+            
+            // Click outside to cancel
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    cleanup();
+                    resolve(false);
+                }
+            });
+            
+            // ESC key to cancel
+            const handleEsc = (e) => {
+                if (e.key === 'Escape') {
+                    document.removeEventListener('keydown', handleEsc);
+                    cleanup();
+                    resolve(false);
+                }
+            };
+            document.addEventListener('keydown', handleEsc);
+            
+            // Append to DOM
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            document.body.style.overflow = 'hidden';
+            
+            // Focus on input for accessibility
+            setTimeout(() => input.focus(), 100);
+        });
+    }
+
+    async createFolder(folderName) {
+        try {
+            const response = await fetch(`${this.apiBase}/cdn/create-folder`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({ 
+                    path: this.currentPath, 
+                    folderName: folderName 
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(errorData.error || 'Failed to create folder');
+            }
+
+            const result = await response.json();
+            this.showToast(`Folder "${result.folderName}" created successfully!`, '#4CAF50');
+            
+            // Refresh current directory
+            this.loadDirectory(this.currentPath);
+            
+        } catch (error) {
+            this.showToast(`Error: ${error.message}`, '#f44336');
+        }
+    }
+
+    showUploadDialog() {
+        return new Promise((resolve) => {
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'confirm-overlay';
+            
+            // Create dialog
+            const dialog = document.createElement('div');
+            dialog.className = 'confirm-dialog upload-dialog';
+            
+            dialog.innerHTML = `
+                <div class="confirm-header">
+                    <h3 class="confirm-title">Upload File</h3>
+                </div>
+                <div class="confirm-message">
+                    <div class="upload-area" id="upload-area">
+                        <div class="upload-text">
+                            <div>Click to select files or drag and drop</div>
+                            <div class="upload-subtext">Maximum file size: 700MB</div>
+                        </div>
+                        <input type="file" id="file-input" multiple style="display: none;">
+                    </div>
+                    <div id="file-list" class="file-list-preview"></div>
+                </div>
+                <div class="confirm-actions">
+                    <button class="confirm-btn confirm-btn-cancel">Cancel</button>
+                    <button class="confirm-btn confirm-btn-upload" disabled>Upload Files</button>
+                </div>
+            `;
+            
+            // Add event listeners
+            const cancelBtn = dialog.querySelector('.confirm-btn-cancel');
+            const uploadBtn = dialog.querySelector('.confirm-btn-upload');
+            const fileInput = dialog.querySelector('#file-input');
+            const uploadArea = dialog.querySelector('#upload-area');
+            const fileListDiv = dialog.querySelector('#file-list');
+            
+            let selectedFiles = [];
+            
+            const cleanup = () => {
+                document.body.removeChild(overlay);
+                document.body.style.overflow = '';
+            };
+            
+            const updateFileList = () => {
+                if (selectedFiles.length === 0) {
+                    fileListDiv.innerHTML = '';
+                    uploadBtn.disabled = true;
+                    return;
+                }
+                
+                uploadBtn.disabled = false;
+                fileListDiv.innerHTML = `
+                    <div class="selected-files-header">Selected files:</div>
+                    ${selectedFiles.map(file => `
+                        <div class="selected-file">
+                            <span>${file.name}</span>
+                            <span class="file-size">(${this.formatFileSize(file.size)})</span>
+                        </div>
+                    `).join('')}
+                `;
+            };
+            
+            const handleFiles = (files) => {
+                selectedFiles = Array.from(files);
+                updateFileList();
+            };
+            
+            // File input change
+            fileInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+            });
+            
+            // Upload area click
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('drag-over');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                handleFiles(e.dataTransfer.files);
+            });
+            
+            cancelBtn.addEventListener('click', () => {
+                cleanup();
+                resolve(false);
+            });
+            
+            uploadBtn.addEventListener('click', async () => {
+                cleanup();
+                await this.uploadFiles(selectedFiles);
+                resolve(true);
+            });
+            
+            // Click outside to cancel
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    cleanup();
+                    resolve(false);
+                }
+            });
+            
+            // ESC key to cancel
+            const handleEsc = (e) => {
+                if (e.key === 'Escape') {
+                    document.removeEventListener('keydown', handleEsc);
+                    cleanup();
+                    resolve(false);
+                }
+            };
+            document.addEventListener('keydown', handleEsc);
+            
+            // Append to DOM
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            document.body.style.overflow = 'hidden';
+        });
+    }
+
+    async uploadFiles(files) {
+        if (files.length === 0) return;
+        
+        const totalFiles = files.length;
+        let completedFiles = 0;
+        
+        this.showToast(`Uploading ${totalFiles} file(s)...`, '#2196F3');
+        
+        for (const file of files) {
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('path', this.currentPath);
+                
+                const response = await fetch(`${this.apiBase}/cdn/upload`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    throw new Error(errorData.error || `Failed to upload ${file.name}`);
+                }
+
+                completedFiles++;
+                
+            } catch (error) {
+                this.showToast(`Error uploading ${file.name}: ${error.message}`, '#f44336');
+            }
+        }
+        
+        if (completedFiles > 0) {
+            this.showToast(`Successfully uploaded ${completedFiles} of ${totalFiles} file(s)!`, '#4CAF50');
+            // Refresh current directory
+            this.loadDirectory(this.currentPath);
+        }
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
     copyUrl(filePath) {

@@ -1,7 +1,6 @@
 async function fetchPoem() {
     try {
-        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const poemUrl = isLocalhost ? 'http://localhost:3002/randompoem' : 'https://api-quotes.ndrew.sk/randompoem';
+        const poemUrl =  'https://api-quotes.ndrew.sk/randompoem';
         const response = await fetch(poemUrl);
         const data = await response.json();
 

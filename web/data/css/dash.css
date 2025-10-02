@@ -93,12 +93,54 @@ input:checked+.slider:before {
 .breadcrumb {
     background-color: #555;
     padding: 0.5rem;
-    margin-bottom: 0.5rem;
     border-radius: 3px;
     font-size: 14px;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
+    flex: 1;
+}
+
+.breadcrumb-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.breadcrumb-actions {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    height: 100%;
+}
+
+.breadcrumb-actions .action-btn {
+    height: calc(1rem + 16px); /* Match breadcrumb height: font-size + padding */
+    padding: 8px 12px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.create-folder-btn {
+    background: #7CB0FF !important;
+    color: #000 !important;
+}
+
+.create-folder-btn:hover {
+    background: #6ba3ff !important;
+}
+
+.upload-file-btn {
+    background: #7CB0FF !important;
+    color: #000 !important;
+}
+
+.upload-file-btn:hover {
+    background: #6ba3ff !important;
 }
 
 .breadcrumb-item {
@@ -154,7 +196,7 @@ input:checked+.slider:before {
     background: #7CB0FF;
     color: #000;
     border: none;
-    padding: 6px 12px;
+    padding: 0.5rem 12px;
     border-radius: 3px;
     cursor: pointer;
     font-size: 11px;
@@ -162,6 +204,11 @@ input:checked+.slider:before {
     min-width: 80px;
     text-align: center;
     white-space: nowrap;
+    margin-bottom: 0px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .action-btn:hover {
@@ -229,7 +276,7 @@ input:checked+.slider:before {
 }
 
 .confirm-title {
-    color: #f44336;
+    color: #7CB0FF;
     font-size: 18px;
     font-weight: bold;
     margin: 0;
@@ -287,12 +334,155 @@ input:checked+.slider:before {
     background: #d32f2f;
 }
 
+.confirm-btn-create {
+    background: #7CB0FF;
+    color: #fff;
+}
+
+.confirm-btn-create:hover {
+    background: #6ba3ff;
+}
+
+.confirm-btn-upload {
+    background: #7CB0FF;
+    color: #fff;
+}
+
+.confirm-btn-upload:hover {
+    background: #6ba3ff;
+}
+
+.confirm-btn-upload:disabled {
+    background: #666;
+    cursor: not-allowed;
+}
+
+.folder-name-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background: #333;
+    color: #fff;
+    font-family: 'Monocraft', sans-serif;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.folder-name-input:focus {
+    border-color: #7CB0FF;
+    background: #444;
+}
+
+.upload-dialog {
+    max-width: 500px;
+}
+
+.upload-area {
+    border: 2px dashed #555;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #333;
+    margin-bottom: 1rem;
+}
+
+.upload-area:hover {
+    border-color: #7CB0FF;
+    background: #3a3a3a;
+}
+
+.upload-area.drag-over {
+    border-color: #7CB0FF;
+    background: #2a3a4a;
+    transform: scale(1.02);
+}
+
+.upload-text {
+    color: #ccc;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.upload-subtext {
+    font-size: 12px;
+    color: #999;
+    margin-top: 0.5rem;
+}
+
+.file-list-preview {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background: #333;
+}
+
+.selected-files-header {
+    padding: 0.75rem;
+    background: #444;
+    border-bottom: 1px solid #555;
+    font-weight: bold;
+    color: #7CB0FF;
+    font-size: 14px;
+}
+
+.selected-file {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #555;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #ccc;
+    font-size: 13px;
+}
+
+.selected-file:last-child {
+    border-bottom: none;
+}
+
+.file-size {
+    color: #999;
+    font-size: 11px;
+}
+
 /* Mobile styles for confirmation dialog */
 @media (max-width: 768px) {
+    .breadcrumb-container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    
+    .breadcrumb-actions {
+        justify-content: center;
+        width: 100%;
+    }
+    
     .confirm-dialog {
         margin: 20px;
         max-width: none;
         width: calc(100% - 40px);
+    }
+    
+    .upload-dialog {
+        max-width: none;
+    }
+    
+    .upload-area {
+        padding: 1.5rem 1rem;
+    }
+    
+    .upload-text {
+        font-size: 14px;
+    }
+    
+    .folder-name-input {
+        font-size: 16px; /* Prevent zoom on iOS */
+        padding: 1rem;
     }
     
     .confirm-title {
@@ -320,7 +510,7 @@ input:checked+.slider:before {
     
     /* Mobile styles for file browser action buttons */
     .action-btn {
-        padding: 8px 16px;
+        padding: 0.5rem 16px;
         font-size: 12px;
         min-width: 90px;
         min-height: 36px;
