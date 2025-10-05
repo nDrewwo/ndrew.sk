@@ -1,19 +1,27 @@
-// CDN File Browser functionality
-class CDNBrowser {
-    constructor() {
-        this.currentPath = '';
+// Unified CDN and Photos Browser functionality
+class UnifiedBrowser {
+    constructor(containerId, mode = 'cdn') {
+        this.containerId = containerId;
+        this.mode = mode; // 'cdn' or 'photos'
+        this.currentPath = mode === 'photos' ? 'photos' : '';
+        this.basePath = mode === 'photos' ? 'photos' : '';
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'; 
         this.apiBase = isLocalhost ? 'http://localhost:3002' : 'https://api.ndrew.sk';
         this.init();
     }
 
     init() {
-        this.loadDirectory('');
+        this.loadDirectory(this.mode === 'photos' ? this.basePath : '');
     }
 
     async loadDirectory(path) {
-        const browserContainer = document.getElementById('cdn-browser');
+        const browserContainer = document.getElementById(this.containerId);
         if (!browserContainer) return;
+
+        // For photos mode, ensure path starts with photos/
+        if (this.mode === 'photos' && !path.startsWith('photos')) {
+            path = 'photos';
+        }
 
         browserContainer.innerHTML = '<div class="loading">Loading...</div>';
 
@@ -33,7 +41,7 @@ class CDNBrowser {
     }
 
     renderBrowser(data) {
-        const browserContainer = document.getElementById('cdn-browser');
+        const browserContainer = document.getElementById(this.containerId);
         
         const html = `
             ${this.renderBreadcrumb()}
@@ -48,23 +56,39 @@ class CDNBrowser {
 
     renderBreadcrumb() {
         const pathParts = this.currentPath ? this.currentPath.split('/').filter(p => p) : [];
-        const breadcrumbItems = [
-            `<span class="breadcrumb-item" data-path="">CDN</span>`
-        ];
+        let breadcrumbItems;
+        
+        if (this.mode === 'photos') {
+            breadcrumbItems = [
+                `<span class="breadcrumb-item" data-path="photos">Photos</span>`
+            ];
+            let currentPath = 'photos';
+            // Skip the first 'photos' part since we already added it
+            pathParts.slice(1).forEach(part => {
+                currentPath += '/' + part;
+                breadcrumbItems.push(`<span class="breadcrumb-separator">/</span>`);
+                breadcrumbItems.push(`<span class="breadcrumb-item" data-path="${currentPath}">${part}</span>`);
+            });
+        } else {
+            breadcrumbItems = [
+                `<span class="breadcrumb-item" data-path="">CDN</span>`
+            ];
+            let currentPath = '';
+            pathParts.forEach(part => {
+                currentPath += (currentPath ? '/' : '') + part;
+                breadcrumbItems.push(`<span class="breadcrumb-separator">/</span>`);
+                breadcrumbItems.push(`<span class="breadcrumb-item" data-path="${currentPath}">${part}</span>`);
+            });
+        }
 
-        let currentPath = '';
-        pathParts.forEach(part => {
-            currentPath += (currentPath ? '/' : '') + part;
-            breadcrumbItems.push(`<span class="breadcrumb-separator">/</span>`);
-            breadcrumbItems.push(`<span class="breadcrumb-item" data-path="${currentPath}">${part}</span>`);
-        });
-
+        const instanceId = this.containerId.replace('-', '');
+        
         return `
             <div class="breadcrumb-container">
                 <div class="breadcrumb">${breadcrumbItems.join('')}</div>
                 <div class="breadcrumb-actions">
-                    <button class="action-btn create-folder-btn" onclick="cdnBrowser.showCreateFolderDialog()">+ Folder</button>
-                    <button class="action-btn upload-file-btn" onclick="cdnBrowser.showUploadDialog()">+ Upload</button>
+                    <button class="action-btn create-folder-btn" onclick="window.${instanceId}.showCreateFolderDialog()">+ Folder</button>
+                    <button class="action-btn upload-file-btn" onclick="window.${instanceId}.showUploadDialog()">+ Upload</button>
                 </div>
             </div>
         `;
@@ -72,6 +96,7 @@ class CDNBrowser {
 
     renderFileItem(item) {
         const isDirectory = item.type === 'directory';
+        const instanceId = this.containerId.replace('-', '');
 
         return `
             <li class="file-item" data-path="${item.path}" data-type="${item.type}">
@@ -79,8 +104,8 @@ class CDNBrowser {
                     <div class="file-name">${item.name}</div>
                 </div>
                 <div class="file-actions">
-                    ${!isDirectory ? `<button class="action-btn" onclick="cdnBrowser.copyUrl('${item.path}')">Copy URL</button>` : ''}
-                    <button class="action-btn delete-btn" onclick="cdnBrowser.deleteItem('${item.path}', '${item.type}')">Delete</button>
+                    ${!isDirectory ? `<button class="action-btn" onclick="window.${instanceId}.copyUrl('${item.path}')">Copy URL</button>` : ''}
+                    <button class="action-btn delete-btn" onclick="window.${instanceId}.deleteItem('${item.path}', '${item.type}')">Delete</button>
                 </div>
             </li>
         `;
@@ -88,15 +113,20 @@ class CDNBrowser {
 
     attachEventListeners() {
         // Breadcrumb navigation
-        document.querySelectorAll('.breadcrumb-item').forEach(item => {
+        document.querySelectorAll(`#${this.containerId} .breadcrumb-item`).forEach(item => {
             item.addEventListener('click', (e) => {
                 const path = e.target.dataset.path;
-                this.loadDirectory(path);
+                // For photos mode, ensure we never navigate outside photos folder
+                if (this.mode === 'photos' && path && path.startsWith('photos')) {
+                    this.loadDirectory(path);
+                } else if (this.mode === 'cdn') {
+                    this.loadDirectory(path);
+                }
             });
         });
 
         // File/directory click - improved for mobile
-        document.querySelectorAll('.file-item').forEach(item => {
+        document.querySelectorAll(`#${this.containerId} .file-item`).forEach(item => {
             const path = item.dataset.path;
             const type = item.dataset.type;
             
@@ -140,9 +170,11 @@ class CDNBrowser {
             const dialog = document.createElement('div');
             dialog.className = 'confirm-dialog';
             
+            const titleText = this.mode === 'photos' ? 'Create New Folder in Photos' : 'Create New Folder';
+            
             dialog.innerHTML = `
                 <div class="confirm-header">
-                    <h3 class="confirm-title">Create New Folder</h3>
+                    <h3 class="confirm-title">${titleText}</h3>
                 </div>
                 <div class="confirm-message">
                     <input type="text" id="folder-name-input" placeholder="Folder name" class="folder-name-input" maxlength="100">
@@ -256,14 +288,19 @@ class CDNBrowser {
             const dialog = document.createElement('div');
             dialog.className = 'confirm-dialog upload-dialog';
             
+            const titleText = this.mode === 'photos' ? 'Upload Photos' : 'Upload File';
+            const selectText = this.mode === 'photos' ? 'Click to select photos or drag and drop' : 'Click to select files or drag and drop';
+            const renameText = this.mode === 'photos' ? '<div class="upload-subtext">Files will be renamed automatically to avoid conflicts</div>' : '';
+            
             dialog.innerHTML = `
                 <div class="confirm-header">
-                    <h3 class="confirm-title">Upload File</h3>
+                    <h3 class="confirm-title">${titleText}</h3>
                 </div>
                 <div class="confirm-message">
                     <div class="upload-area" id="upload-area">
                         <div class="upload-text">
-                            <div>Click to select files or drag and drop</div>
+                            <div>${selectText}</div>
+                            ${renameText}
                             <div class="upload-subtext">Maximum file size: 700MB</div>
                         </div>
                         <input type="file" id="file-input" multiple style="display: none;">
@@ -298,8 +335,9 @@ class CDNBrowser {
                 }
                 
                 uploadBtn.disabled = false;
+                const headerText = this.mode === 'photos' ? 'Selected files (will be renamed):' : 'Selected files:';
                 fileListDiv.innerHTML = `
-                    <div class="selected-files-header">Selected files:</div>
+                    <div class="selected-files-header">${headerText}</div>
                     ${selectedFiles.map(file => `
                         <div class="selected-file">
                             <span>${file.name}</span>
@@ -376,18 +414,35 @@ class CDNBrowser {
         });
     }
 
+    // Generate a random string for file renaming (photos mode only)
+    generateRandomFileName(originalName) {
+        const extension = originalName.split('.').pop();
+        const randomString = Math.random().toString(36).replace(/[^a-z0-9]/g, '').substring(0, 8);
+        const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+        return `${timestamp}${randomString}.${extension}`;
+    }
+
     async uploadFiles(files) {
         if (files.length === 0) return;
         
         const totalFiles = files.length;
         let completedFiles = 0;
         
-        this.showToast(`Uploading ${totalFiles} file(s)...`, '#2196F3');
+        const locationText = this.mode === 'photos' ? 'to photos' : '';
+        this.showToast(`Uploading ${totalFiles} file(s) ${locationText}...`, '#2196F3');
         
         for (const file of files) {
             try {
+                let fileToUpload = file;
+                
+                // For photos mode, rename the file
+                if (this.mode === 'photos') {
+                    const newFileName = this.generateRandomFileName(file.name);
+                    fileToUpload = new File([file], newFileName, { type: file.type });
+                }
+                
                 const formData = new FormData();
-                formData.append('file', file);
+                formData.append('file', fileToUpload);
                 formData.append('path', this.currentPath);
                 
                 const response = await fetch(`${this.apiBase}/cdn/upload`, {
@@ -409,7 +464,8 @@ class CDNBrowser {
         }
         
         if (completedFiles > 0) {
-            this.showToast(`Successfully uploaded ${completedFiles} of ${totalFiles} file(s)!`, '#4CAF50');
+            const successLocationText = this.mode === 'photos' ? ' to photos' : '';
+            this.showToast(`Successfully uploaded ${completedFiles} of ${totalFiles} file(s)${successLocationText}!`, '#4CAF50');
             // Refresh current directory
             this.loadDirectory(this.currentPath);
         }
@@ -476,13 +532,14 @@ class CDNBrowser {
             dialog.className = 'confirm-dialog';
             
             const isDirectory = itemType === 'directory';
+            const locationText = this.mode === 'photos' ? ' from photos' : '';
             
             dialog.innerHTML = `
                 <div class="confirm-header">
                     <h3 class="confirm-title">Delete ${typeText.charAt(0).toUpperCase() + typeText.slice(1)}</h3>
                 </div>
                 <div class="confirm-message">
-                    Are you sure you want to delete the ${typeText} "<strong>${itemName}</strong>"?
+                    Are you sure you want to delete the ${typeText} "<strong>${itemName}</strong>"${locationText}?
                 </div>
                 ${isDirectory ? `
                     <div class="confirm-warning">
@@ -566,7 +623,15 @@ class CDNBrowser {
     }
 }
 
-// Initialize CDN browser when page loads
+// Initialize browsers when page loads
 window.addEventListener('load', () => {
-    window.cdnBrowser = new CDNBrowser();
+    // Initialize CDN browser
+    if (document.getElementById('cdn-browser')) {
+        window.cdnbrowser = new UnifiedBrowser('cdn-browser', 'cdn');
+    }
+    
+    // Initialize Photos browser
+    if (document.getElementById('photos-browser')) {
+        window.photosbrowser = new UnifiedBrowser('photos-browser', 'photos');
+    }
 });
