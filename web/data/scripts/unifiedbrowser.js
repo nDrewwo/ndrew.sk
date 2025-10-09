@@ -302,6 +302,7 @@ class UnifiedBrowser {
                             <div>${selectText}</div>
                             ${renameText}
                             <div class="upload-subtext">Maximum file size: 700MB</div>
+                            <div class="upload-subtext" style="color: #7CB0FF; margin-top: 5px;">Files over 1MB will show upload progress</div>
                         </div>
                         <input type="file" id="file-input" multiple style="display: none;">
                     </div>
@@ -338,12 +339,16 @@ class UnifiedBrowser {
                 const headerText = this.mode === 'photos' ? 'Selected files (will be renamed):' : 'Selected files:';
                 fileListDiv.innerHTML = `
                     <div class="selected-files-header">${headerText}</div>
-                    ${selectedFiles.map(file => `
+                    ${selectedFiles.map(file => {
+                        const isLarge = file.size > 1024 * 1024; // Over 1MB
+                        const uploadMethod = isLarge ? '<span style="color: #7CB0FF; font-size: 11px;">(chunked upload)</span>' : '<span style="color: #888; font-size: 11px;">(direct upload)</span>';
+                        return `
                         <div class="selected-file">
                             <span>${file.name}</span>
-                            <span class="file-size">(${this.formatFileSize(file.size)})</span>
+                            <span class="file-size">(${this.formatFileSize(file.size)}) ${uploadMethod}</span>
                         </div>
-                    `).join('')}
+                    `;
+                    }).join('')}
                 `;
             };
             
@@ -447,20 +452,11 @@ class UnifiedBrowser {
                     fileToUpload = new File([file], newFileName, { type: file.type });
                 }
                 
-                const formData = new FormData();
-                formData.append('file', fileToUpload);
-                formData.append('path', this.currentPath);
-                
-                const response = await fetch(`${this.apiBase}/cdn/upload`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    body: formData
-                    // No timeout - let browser handle it for large files
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-                    throw new Error(errorData.error || `Failed to upload ${file.name}`);
+                // Use chunked upload for files over 1MB
+                if (file.size > 1024 * 1024) {
+                    await this.uploadFileChunked(fileToUpload);
+                } else {
+                    await this.uploadFileRegular(fileToUpload);
                 }
 
                 completedFiles++;
@@ -476,6 +472,261 @@ class UnifiedBrowser {
             this.showToast(`Successfully uploaded ${completedFiles} of ${totalFiles} file(s)${successLocationText}!`, '#4CAF50');
             // Refresh current directory
             this.loadDirectory(this.currentPath);
+        }
+    }
+
+    async uploadFileRegular(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('path', this.currentPath);
+        
+        const response = await fetch(`${this.apiBase}/cdn/upload`, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(errorData.error || `Failed to upload ${file.name}`);
+        }
+    }
+
+    async uploadFileChunked(file) {
+        const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
+        const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+        const MAX_RETRIES = 3;
+        
+        // Create abort controller for cancellation
+        const abortController = new AbortController();
+        
+        // Initialize upload session
+        const initResponse = await fetch(`${this.apiBase}/cdn/upload-init`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                fileName: file.name,
+                fileSize: file.size,
+                totalChunks: totalChunks,
+                path: this.currentPath
+            }),
+            signal: abortController.signal
+        });
+
+        if (!initResponse.ok) {
+            const errorData = await initResponse.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(errorData.error || 'Failed to initialize chunked upload');
+        }
+
+        const { uploadId } = await initResponse.json();
+        
+        // Create progress indicator
+        const progressContainer = this.createProgressIndicator(file.name, () => {
+            abortController.abort();
+        });
+        
+        try {
+            // Upload chunks with retry logic
+            for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+                // Check if upload was cancelled
+                if (abortController.signal.aborted) {
+                    throw new Error('Upload cancelled by user');
+                }
+                
+                const start = chunkIndex * CHUNK_SIZE;
+                const end = Math.min(start + CHUNK_SIZE, file.size);
+                const chunk = file.slice(start, end);
+                
+                let retryCount = 0;
+                let chunkUploaded = false;
+                
+                while (!chunkUploaded && retryCount < MAX_RETRIES && !abortController.signal.aborted) {
+                    try {
+                        const chunkFormData = new FormData();
+                        chunkFormData.append('chunk', chunk);
+                        chunkFormData.append('uploadId', uploadId);
+                        chunkFormData.append('chunkIndex', chunkIndex.toString());
+                        
+                        const chunkResponse = await fetch(`${this.apiBase}/cdn/upload-chunk`, {
+                            method: 'POST',
+                            credentials: 'include',
+                            body: chunkFormData,
+                            signal: abortController.signal
+                        });
+
+                        if (!chunkResponse.ok) {
+                            const errorData = await chunkResponse.json().catch(() => ({ error: 'Unknown error' }));
+                            throw new Error(errorData.error || `Failed to upload chunk ${chunkIndex + 1}`);
+                        }
+
+                        chunkUploaded = true;
+                        
+                        // Update progress
+                        const progress = Math.round(((chunkIndex + 1) / totalChunks) * 100);
+                        this.updateProgress(progressContainer, progress);
+                        
+                    } catch (error) {
+                        if (error.name === 'AbortError' || abortController.signal.aborted) {
+                            throw new Error('Upload cancelled by user');
+                        }
+                        
+                        retryCount++;
+                        if (retryCount >= MAX_RETRIES) {
+                            throw new Error(`Failed to upload chunk ${chunkIndex + 1} after ${MAX_RETRIES} attempts: ${error.message}`);
+                        }
+                        
+                        // Show retry status
+                        this.updateProgress(progressContainer, Math.round(((chunkIndex) / totalChunks) * 100), `Retrying chunk ${chunkIndex + 1} (${retryCount}/${MAX_RETRIES})`);
+                        
+                        // Wait before retry with exponential backoff
+                        await new Promise((resolve, reject) => {
+                            const timeout = setTimeout(resolve, Math.pow(2, retryCount) * 1000);
+                            abortController.signal.addEventListener('abort', () => {
+                                clearTimeout(timeout);
+                                reject(new Error('Upload cancelled by user'));
+                            });
+                        });
+                    }
+                }
+            }
+
+            // Check if upload was cancelled before finalizing
+            if (abortController.signal.aborted) {
+                throw new Error('Upload cancelled by user');
+            }
+
+            // Finalize upload
+            this.updateProgress(progressContainer, 99, 'Finalizing...');
+            
+            const finalizeResponse = await fetch(`${this.apiBase}/cdn/upload-finalize`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ uploadId }),
+                signal: abortController.signal
+            });
+
+            if (!finalizeResponse.ok) {
+                const errorData = await finalizeResponse.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(errorData.error || 'Failed to finalize upload');
+            }
+
+            this.updateProgress(progressContainer, 100, 'Complete!');
+            
+        } catch (error) {
+            if (error.message === 'Upload cancelled by user') {
+                this.updateProgress(progressContainer, 0, 'Cancelled');
+            } else {
+                this.updateProgress(progressContainer, 0, 'Failed');
+            }
+            throw error;
+        } finally {
+            // Remove progress indicator after 3 seconds
+            setTimeout(() => {
+                if (progressContainer.parentNode) {
+                    progressContainer.parentNode.removeChild(progressContainer);
+                }
+            }, 3000);
+        }
+    }
+
+    createProgressIndicator(fileName, onCancel = null) {
+        // Create unique ID for this upload
+        const uploadId = `upload_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+        
+        // Calculate position based on existing progress indicators
+        const existingIndicators = document.querySelectorAll('.upload-progress-indicator');
+        const topOffset = 70 + (existingIndicators.length * 80); // Stack them vertically
+        
+        const container = document.createElement('div');
+        container.className = 'upload-progress-indicator';
+        container.id = uploadId;
+        container.style.cssText = `
+            position: fixed;
+            top: ${topOffset}px;
+            right: 20px;
+            background: #333;
+            color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            z-index: 10001;
+            font-family: Monocraft;
+            font-size: 12px;
+            max-width: 300px;
+            border: 1px solid #555;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            cursor: ${onCancel ? 'pointer' : 'default'};
+        `;
+        
+        // Truncate long filenames
+        const displayName = fileName.length > 30 ? fileName.substring(0, 27) + '...' : fileName;
+        const cancelText = onCancel ? '<div style="font-size: 10px; color: #ccc; margin-top: 3px;">Click to cancel</div>' : '';
+        
+        container.innerHTML = `
+            <div style="margin-bottom: 8px; font-weight: bold; word-break: break-all;">${displayName}</div>
+            <div style="background: #555; height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 5px;">
+                <div class="progress-bar" style="background: #7CB0FF; height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+            </div>
+            <div class="progress-text" style="text-align: center; font-size: 11px;">0%</div>
+            ${cancelText}
+        `;
+        
+        // Add cancel functionality
+        if (onCancel) {
+            container.addEventListener('click', () => {
+                if (confirm(`Cancel upload of ${fileName}?`)) {
+                    onCancel();
+                }
+            });
+            
+            // Add visual feedback for clickable state
+            container.addEventListener('mouseenter', () => {
+                container.style.borderColor = '#f44336';
+            });
+            
+            container.addEventListener('mouseleave', () => {
+                container.style.borderColor = '#555';
+            });
+        }
+        
+        document.body.appendChild(container);
+        return container;
+    }
+
+    updateProgress(container, percentage, status = null) {
+        const progressBar = container.querySelector('.progress-bar');
+        const progressText = container.querySelector('.progress-text');
+        
+        if (progressBar) {
+            progressBar.style.width = `${percentage}%`;
+        }
+        
+        if (progressText) {
+            if (status) {
+                progressText.textContent = status;
+            } else {
+                progressText.textContent = `${percentage}%`;
+            }
+        }
+        
+        if (percentage === 100 && !status) {
+            progressText.textContent = 'Complete!';
+            progressBar.style.background = '#4CAF50';
+            container.style.borderColor = '#4CAF50';
+        }
+        
+        if (status === 'Failed') {
+            progressBar.style.background = '#f44336';
+            container.style.borderColor = '#f44336';
+            progressText.textContent = 'Failed';
+        }
+        
+        if (status === 'Cancelled') {
+            progressBar.style.background = '#ff9800';
+            container.style.borderColor = '#ff9800';
+            progressText.textContent = 'Cancelled';
         }
     }
 

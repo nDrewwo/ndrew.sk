@@ -127,6 +127,171 @@ router.post('/cdn/create-folder', authenticateToken, async (req, res) => {
   }
 });
 
+// Initialize chunked upload
+router.post('/cdn/upload-init', authenticateToken, async (req, res) => {
+  try {
+    const { fileName, fileSize, totalChunks, path: uploadPath } = req.body;
+    
+    if (!fileName || !fileSize || !totalChunks) {
+      return res.status(400).json({ error: 'Missing required parameters' });
+    }
+
+    // Generate unique upload ID
+    const uploadId = `${Date.now()}_${Math.random().toString(36).substring(2)}`;
+    
+    // Store upload metadata (in production, use Redis or database)
+    global.uploadSessions = global.uploadSessions || new Map();
+    global.uploadSessions.set(uploadId, {
+      fileName,
+      fileSize,
+      totalChunks,
+      uploadPath: uploadPath || '',
+      uploadedChunks: new Set(),
+      createdAt: Date.now()
+    });
+
+    res.json({ uploadId, message: 'Upload session initialized' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to initialize upload' });
+  }
+});
+
+// Upload individual chunk
+router.post('/cdn/upload-chunk', authenticateToken, (req, res, next) => {
+  upload.single('chunk')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ error: 'Chunk too large' });
+      }
+      return res.status(400).json({ error: `Upload error: ${err.message}` });
+    } else if (err) {
+      return res.status(500).json({ error: `Server error: ${err.message}` });
+    }
+    next();
+  });
+}, async (req, res) => {
+  try {
+    const { uploadId, chunkIndex } = req.body;
+    const chunkFile = req.file;
+
+    if (!uploadId || chunkIndex === undefined || !chunkFile) {
+      return res.status(400).json({ error: 'Missing required parameters' });
+    }
+
+    global.uploadSessions = global.uploadSessions || new Map();
+    const session = global.uploadSessions.get(uploadId);
+    
+    if (!session) {
+      // Clean up temp file
+      await fs.unlink(chunkFile.path).catch(() => {});
+      return res.status(404).json({ error: 'Upload session not found' });
+    }
+
+    // Create chunks directory
+    const publicDir = path.join(__dirname, '../../cdn/public');
+    const chunksDir = path.join(publicDir, 'temp_chunks', uploadId);
+    await fs.mkdir(chunksDir, { recursive: true });
+
+    // Move chunk to chunks directory
+    const chunkPath = path.join(chunksDir, `chunk_${chunkIndex}`);
+    await fs.rename(chunkFile.path, chunkPath);
+
+    // Track uploaded chunk
+    session.uploadedChunks.add(parseInt(chunkIndex));
+
+    res.json({ 
+      message: 'Chunk uploaded successfully',
+      uploadedChunks: session.uploadedChunks.size,
+      totalChunks: session.totalChunks
+    });
+  } catch (error) {
+    console.error('Chunk upload error:', error);
+    if (req.file?.path) {
+      await fs.unlink(req.file.path).catch(() => {});
+    }
+    res.status(500).json({ error: 'Failed to upload chunk' });
+  }
+});
+
+// Finalize chunked upload
+router.post('/cdn/upload-finalize', authenticateToken, async (req, res) => {
+  try {
+    const { uploadId } = req.body;
+
+    global.uploadSessions = global.uploadSessions || new Map();
+    const session = global.uploadSessions.get(uploadId);
+    
+    if (!session) {
+      return res.status(404).json({ error: 'Upload session not found' });
+    }
+
+    // Check if all chunks are uploaded
+    if (session.uploadedChunks.size !== session.totalChunks) {
+      return res.status(400).json({ 
+        error: 'Missing chunks',
+        uploaded: session.uploadedChunks.size,
+        total: session.totalChunks
+      });
+    }
+
+    const publicDir = path.join(__dirname, '../../cdn/public');
+    const chunksDir = path.join(publicDir, 'temp_chunks', uploadId);
+    const targetDir = path.join(publicDir, session.uploadPath);
+    const finalFilePath = path.join(targetDir, session.fileName);
+
+    // Security check
+    if (!targetDir.startsWith(publicDir) || !finalFilePath.startsWith(publicDir)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Ensure target directory exists
+    await fs.mkdir(targetDir, { recursive: true });
+
+    // Combine chunks into final file using streams for memory efficiency
+    await new Promise((resolve, reject) => {
+      const writeStream = require('fs').createWriteStream(finalFilePath);
+      
+      writeStream.on('error', reject);
+      writeStream.on('finish', resolve);
+      
+      const writeNextChunk = async (chunkIndex) => {
+        if (chunkIndex >= session.totalChunks) {
+          writeStream.end();
+          return;
+        }
+        
+        const chunkPath = path.join(chunksDir, `chunk_${chunkIndex}`);
+        try {
+          const readStream = require('fs').createReadStream(chunkPath);
+          readStream.on('end', () => writeNextChunk(chunkIndex + 1));
+          readStream.on('error', reject);
+          readStream.pipe(writeStream, { end: false });
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      writeNextChunk(0);
+    });
+
+    // Clean up chunks directory
+    await fs.rm(chunksDir, { recursive: true, force: true });
+    
+    // Remove session
+    global.uploadSessions.delete(uploadId);
+
+    res.json({ 
+      success: true, 
+      message: 'File uploaded successfully',
+      fileName: session.fileName,
+      size: session.fileSize
+    });
+  } catch (error) {
+    console.error('Finalize upload error:', error);
+    res.status(500).json({ error: 'Failed to finalize upload' });
+  }
+});
+
 // Upload file
 router.post('/cdn/upload', authenticateToken, (req, res, next) => {
   upload.single('file')(req, res, (err) => {

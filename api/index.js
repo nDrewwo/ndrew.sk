@@ -47,6 +47,27 @@ app.get('/', (req, res) => {
   res.send('api.ndrew.sk is up and running!');
 });
 
+// Add cleanup for abandoned upload sessions
+setInterval(() => {
+  if (global.uploadSessions) {
+    const now = Date.now();
+    const maxAge = 30 * 60 * 1000; // 30 minutes
+    
+    for (const [uploadId, session] of global.uploadSessions.entries()) {
+      if (now - session.createdAt > maxAge) {
+        // Clean up chunks directory
+        const fs = require('fs').promises;
+        const path = require('path');
+        const chunksDir = path.join(__dirname, '../cdn/public/temp_chunks', uploadId);
+        fs.rm(chunksDir, { recursive: true, force: true }).catch(() => {});
+        
+        // Remove session
+        global.uploadSessions.delete(uploadId);
+      }
+    }
+  }
+}, 5 * 60 * 1000); // Run every 5 minutes
+
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
