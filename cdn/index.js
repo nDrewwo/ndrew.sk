@@ -38,6 +38,23 @@ app.use(async (req, res, next) => {
                 return next(); // Let static middleware handle 404
             }
 
+            // Get image metadata to determine orientation
+            const metadata = await sharp(filePath).metadata();
+            
+            // Check EXIF orientation to determine if image is rotated
+            const orientation = metadata.orientation || 1;
+            const isRotated = orientation >= 5 && orientation <= 8; // orientations 5,6,7,8 involve 90° rotation
+            
+            // Determine if image is vertical considering both dimensions and EXIF rotation
+            let isVertical;
+            if (isRotated) {
+                // If rotated 90°, swap width/height for comparison
+                isVertical = metadata.width > metadata.height;
+            } else {
+                // Normal comparison
+                isVertical = metadata.height > metadata.width;
+            }
+
             // Quality settings
             let qualitySettings = {};
             switch (quality.toLowerCase()) {
@@ -46,7 +63,7 @@ app.use(async (req, res, next) => {
                         jpeg: { quality: 30 }, 
                         png: { quality: 30 }, 
                         webp: { quality: 30 },
-                        resize: { width: 800 }
+                        resize: isVertical ? { height: 800 } : { width: 800 }
                     };
                     break;
                 case 'medium':
@@ -54,7 +71,7 @@ app.use(async (req, res, next) => {
                         jpeg: { quality: 60 }, 
                         png: { quality: 60 }, 
                         webp: { quality: 60 },
-                        resize: { width: 1200 }
+                        resize: isVertical ? { height: 1200 } : { width: 1200 }
                     };
                     break;
                 case 'high':
@@ -74,13 +91,19 @@ app.use(async (req, res, next) => {
             const ext = path.extname(req.path).toLowerCase();
             
             // Process the image with Sharp
-            let sharpInstance = sharp(filePath);
+            let sharpInstance = sharp(filePath)
+                .rotate(); // Auto-rotate based on EXIF orientation
             
             // Apply resizing if specified
             if (qualitySettings.resize) {
-                sharpInstance = sharpInstance.resize(qualitySettings.resize.width, null, {
-                    withoutEnlargement: true
-                });
+                sharpInstance = sharpInstance.resize(
+                    qualitySettings.resize.width || null,
+                    qualitySettings.resize.height || null,
+                    {
+                        withoutEnlargement: true,
+                        fit: 'inside' // Ensure aspect ratio is maintained
+                    }
+                );
             }
 
             // Apply quality settings based on format
@@ -111,6 +134,7 @@ app.use(async (req, res, next) => {
 
             // Set appropriate cache headers for processed images
             res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
+            
             res.send(processedImage);
             
         } catch (error) {
