@@ -268,7 +268,7 @@ class UnifiedBrowser {
             }
 
             const result = await response.json();
-            this.showToast(`Folder "${result.folderName}" created successfully!`, '#4CAF50');
+            this.showToast(`Folder "${result.folderName}" created successfully!`, '#7CB0FF');
             
             // Refresh current directory
             this.loadDirectory(this.currentPath);
@@ -434,7 +434,7 @@ class UnifiedBrowser {
         let completedFiles = 0;
         
         const locationText = this.mode === 'photos' ? 'to photos' : '';
-        this.showToast(`Uploading ${totalFiles} file(s) ${locationText}...`, '#2196F3');
+        this.showToast(`Uploading ${totalFiles} file(s) ${locationText}...`, '#7CB0FF');
         
         for (const file of files) {
             try {
@@ -770,7 +770,7 @@ class UnifiedBrowser {
             }
 
             // Show success message
-            this.showToast(`${typeText.charAt(0).toUpperCase() + typeText.slice(1)} "${itemName}" deleted successfully!`, '#4CAF50');
+            this.showToast(`${typeText.charAt(0).toUpperCase() + typeText.slice(1)} "${itemName}" deleted successfully!`, '#7CB0FF');
             
             // Refresh current directory
             this.loadDirectory(this.currentPath);
