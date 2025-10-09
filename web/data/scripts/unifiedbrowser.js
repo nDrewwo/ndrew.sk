@@ -433,6 +433,12 @@ class UnifiedBrowser {
         
         for (const file of files) {
             try {
+                // Check file size before upload (700MB limit)
+                if (file.size > 700 * 1024 * 1024) {
+                    this.showToast(`File ${file.name} is too large (max 700MB)`, '#f44336');
+                    continue;
+                }
+                
                 let fileToUpload = file;
                 
                 // For photos mode, rename the file
@@ -449,6 +455,7 @@ class UnifiedBrowser {
                     method: 'POST',
                     credentials: 'include',
                     body: formData
+                    // No timeout - let browser handle it for large files
                 });
 
                 if (!response.ok) {
@@ -459,6 +466,7 @@ class UnifiedBrowser {
                 completedFiles++;
                 
             } catch (error) {
+                console.error(`Upload error for ${file.name}:`, error);
                 this.showToast(`Error uploading ${file.name}: ${error.message}`, '#f44336');
             }
         }

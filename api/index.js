@@ -17,6 +17,14 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
+// Add timeout configuration for large uploads
+app.use((req, res, next) => {
+  // Set timeout to 5 minutes for large uploads
+  req.setTimeout(300000);
+  res.setTimeout(300000);
+  next();
+});
+
 // Import routers
 const authRouter = require('./routes/auth');
 const spotifyRouter = require('./routes/spotify');

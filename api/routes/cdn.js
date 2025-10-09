@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   limits: {
-    fileSize: 700 * 1024 * 1024 // 50MB limit
+    fileSize: 700 * 1024 * 1024 // 700MB limit
   }
 });
 
@@ -128,7 +128,19 @@ router.post('/cdn/create-folder', authenticateToken, async (req, res) => {
 });
 
 // Upload file
-router.post('/cdn/upload', authenticateToken, upload.single('file'), async (req, res) => {
+router.post('/cdn/upload', authenticateToken, (req, res, next) => {
+  upload.single('file')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ error: 'File too large. Maximum size is 700MB.' });
+      }
+      return res.status(400).json({ error: `Upload error: ${err.message}` });
+    } else if (err) {
+      return res.status(500).json({ error: `Server error: ${err.message}` });
+    }
+    next();
+  });
+}, async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
