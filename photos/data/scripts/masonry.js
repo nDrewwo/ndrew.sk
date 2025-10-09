@@ -1,6 +1,9 @@
 class MasonryLayout {
     constructor(containerSelector, options = {}) {
-        this.container = document.querySelector(containerSelector);
+        // Handle both string selectors and DOM elements
+        this.container = typeof containerSelector === 'string' 
+            ? document.querySelector(containerSelector) 
+            : containerSelector;
         this.items = [];
         this.columns = [];
         this.options = {

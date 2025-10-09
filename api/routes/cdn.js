@@ -216,4 +216,44 @@ router.delete('/cdn/delete', authenticateToken, async (req, res) => {
   }
 });
 
+// Get photo galleries (folders in photos directory)
+router.get('/cdn/photo-galleries', async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  
+  const photosDir = path.join(__dirname, '../../cdn/public/photos');
+  
+  try {
+    // Check if photos directory exists
+    await fs.access(photosDir);
+    
+    const items = await fs.readdir(photosDir);
+    const galleries = [];
+    
+    for (const item of items) {
+      const itemPath = path.join(photosDir, item);
+      const stats = await fs.stat(itemPath);
+      
+      if (stats.isDirectory()) {
+        // Get all images in this folder
+        const folderContents = await fs.readdir(itemPath);
+        const images = folderContents.filter(file => 
+          /\.(jpg|jpeg|png|gif|webp)$/i.test(file)
+        );
+        
+        galleries.push({
+          name: item,
+          path: `photos/${item}`,
+          imageCount: images.length,
+          images: images.map(img => `photos/${item}/${img}`)
+        });
+      }
+    }
+    
+    res.json(galleries);
+  } catch (error) {
+    console.error('Error reading photos directory:', error);
+    res.status(500).json({ error: 'Failed to read photo galleries' });
+  }
+});
+
 module.exports = router;
