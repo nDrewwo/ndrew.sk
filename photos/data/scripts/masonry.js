@@ -6,6 +6,7 @@ class MasonryLayout {
             : containerSelector;
         this.items = [];
         this.columns = [];
+        this.isLoading = true;
         this.options = {
             minColumnWidth: options.minColumnWidth || 280,
             maxColumnWidth: options.maxColumnWidth || 400,
@@ -20,11 +21,25 @@ class MasonryLayout {
     init() {
         if (!this.container) return;
         
+        // Check if container has proper dimensions
+        if (this.container.clientWidth === 0) {
+            // If container isn't ready, wait and try again
+            setTimeout(() => {
+                if (this.container.clientWidth > 0) {
+                    this.init();
+                }
+            }, 100);
+            return;
+        }
+        
         this.setupContainer();
-        this.loadImages();
+        this.showLoadingState();
+        this.preloadAllImages();
         
         if (this.options.responsive) {
-            window.addEventListener('resize', this.debounce(() => this.layout(), 250));
+            window.addEventListener('resize', this.debounce(() => {
+                if (!this.isLoading) this.layout();
+            }, 250));
         }
     }
     
@@ -32,68 +47,157 @@ class MasonryLayout {
         this.container.style.position = 'relative';
         this.container.style.padding = `${this.options.gap}px`;
     }
+
+    showLoadingState() {
+        // Create loading indicator
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'masonry-loading';
+        loadingDiv.innerHTML = `
+            <div style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 200px;
+                color: #7CB0FF;
+                font-family: 'Monocraft', sans-serif;
+                font-size: 16px;
+            ">
+                <div style="
+                    width: 40px;
+                    height: 40px;
+                    border: 3px solid #555;
+                    border-top: 3px solid #7CB0FF;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                    margin-bottom: 15px;
+                "></div>
+                Loading images...
+            </div>
+        `;
+        
+        // Add CSS for loading animation if not already present
+        if (!document.querySelector('#masonry-loading-styles')) {
+            const style = document.createElement('style');
+            style.id = 'masonry-loading-styles';
+            style.textContent = `
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        this.container.appendChild(loadingDiv);
+    }
+
+    hideLoadingState() {
+        const loadingDiv = this.container.querySelector('.masonry-loading');
+        if (loadingDiv) {
+            loadingDiv.remove();
+        }
+    }
     
-    loadImages() {
-        const images = this.container.querySelectorAll('img');
-        let loadedCount = 0;
+    preloadAllImages() {
+        const images = this.container.querySelectorAll('img:not(.masonry-processed)');
         const totalImages = images.length;
         
         if (totalImages === 0) {
+            this.hideLoadingState();
+            this.isLoading = false;
             this.layout();
             return;
         }
-        
+
+        // Mark images as being processed to avoid double-processing
+        images.forEach(img => {
+            img.classList.add('masonry-processed');
+            img.style.visibility = 'hidden';
+        });
+
+        let loadedCount = 0;
+        const imagePromises = [];
+
         images.forEach((img, index) => {
-            // Create wrapper for each image
-            const wrapper = document.createElement('div');
-            wrapper.className = 'masonry-item';
-            wrapper.style.position = 'absolute';
-            wrapper.style.transition = 'all 0.3s ease';
-            wrapper.style.cursor = 'pointer';
-            
-            // Insert wrapper before image and move image into wrapper
-            img.parentNode.insertBefore(wrapper, img);
-            wrapper.appendChild(img);
-            
-            // Style the image
-            img.style.width = '100%';
-            img.style.height = 'auto';
-            img.style.display = 'block';
-            img.style.borderRadius = '4px';
-            
-            // Add hover effect and click functionality
-            wrapper.addEventListener('mouseenter', () => {
-                wrapper.style.transform = 'scale(1.02)';
-                wrapper.style.zIndex = '10';
-                wrapper.style.boxShadow = '0 8px 25px rgba(124, 176, 255, 0.3)';
-            });
-            
-            wrapper.addEventListener('mouseleave', () => {
-                wrapper.style.transform = 'scale(1)';
-                wrapper.style.zIndex = '1';
-                wrapper.style.boxShadow = 'none';
-            });
-            
-            // Add click functionality for lightbox
-            wrapper.addEventListener('click', () => {
-                this.openLightbox(img.src);
-            });
-            
-            if (img.complete) {
-                this.handleImageLoad(wrapper, img, ++loadedCount, totalImages);
-            } else {
-                img.addEventListener('load', () => {
-                    this.handleImageLoad(wrapper, img, ++loadedCount, totalImages);
+            const promise = new Promise((resolve, reject) => {
+                // Skip if already wrapped
+                if (img.parentElement && img.parentElement.classList.contains('masonry-item')) {
+                    resolve();
+                    return;
+                }
+                
+                // Create wrapper for each image
+                const wrapper = document.createElement('div');
+                wrapper.className = 'masonry-item';
+                wrapper.style.position = 'absolute';
+                wrapper.style.transition = 'all 0.3s ease';
+                wrapper.style.cursor = 'pointer';
+                wrapper.style.visibility = 'hidden'; // Hide wrapper initially too
+                
+                // Insert wrapper before image and move image into wrapper
+                img.parentNode.insertBefore(wrapper, img);
+                wrapper.appendChild(img);
+                
+                // Style the image
+                img.style.width = '100%';
+                img.style.height = 'auto';
+                img.style.display = 'block';
+                img.style.borderRadius = '4px';
+                img.style.visibility = 'visible'; // Make image visible within hidden wrapper
+                
+                // Add hover effect and click functionality
+                wrapper.addEventListener('mouseenter', () => {
+                    wrapper.style.transform = 'scale(1.02)';
+                    wrapper.style.zIndex = '10';
+                    wrapper.style.boxShadow = '0 8px 25px rgba(124, 176, 255, 0.3)';
                 });
-                img.addEventListener('error', () => {
-                    console.warn('Failed to load image:', img.src);
-                    this.handleImageLoad(wrapper, img, ++loadedCount, totalImages);
+                
+                wrapper.addEventListener('mouseleave', () => {
+                    wrapper.style.transform = 'scale(1)';
+                    wrapper.style.zIndex = '1';
+                    wrapper.style.boxShadow = 'none';
                 });
-            }
+                
+                // Add click functionality for lightbox
+                wrapper.addEventListener('click', () => {
+                    this.openLightbox(img.src);
+                });
+                
+                if (img.complete && img.naturalHeight !== 0) {
+                    this.handleImageLoad(wrapper, img);
+                    resolve();
+                } else {
+                    img.addEventListener('load', () => {
+                        this.handleImageLoad(wrapper, img);
+                        resolve();
+                    });
+                    img.addEventListener('error', () => {
+                        console.warn('Failed to load image:', img.src);
+                        // Still resolve to not block the loading process
+                        resolve();
+                    });
+                }
+            });
+            
+            imagePromises.push(promise);
+        });
+
+        // Wait for all images to load before starting layout
+        Promise.all(imagePromises).then(() => {
+            this.hideLoadingState();
+            this.isLoading = false;
+            
+            // Show all wrappers
+            this.container.querySelectorAll('.masonry-item').forEach(wrapper => {
+                wrapper.style.visibility = 'visible';
+            });
+            
+            this.layout();
         });
     }
     
-    handleImageLoad(wrapper, img, loadedCount, totalImages) {
+    handleImageLoad(wrapper, img) {
         // Calculate aspect ratio and determine item type
         const aspectRatio = img.naturalWidth / img.naturalHeight;
         
@@ -109,11 +213,6 @@ class MasonryLayout {
         };
         
         this.items.push(wrapper.itemData);
-        
-        // Layout when all images are loaded
-        if (loadedCount === totalImages) {
-            this.layout();
-        }
     }
     
     calculateColumns() {
@@ -144,7 +243,7 @@ class MasonryLayout {
     }
     
     layout() {
-        if (this.items.length === 0) return;
+        if (this.items.length === 0 || this.isLoading) return;
         
         const { columns, columnWidth } = this.calculateColumns();
         
@@ -258,13 +357,41 @@ class MasonryLayout {
     
     // Public method to refresh layout
     refresh() {
-        this.layout();
+        if (!this.isLoading) this.layout();
+    }
+    
+    // Public method to completely reset and reinitialize
+    reset() {
+        this.items = [];
+        this.columns = [];
+        this.isLoading = true;
+        
+        // Clear any existing wrappers and reset processed state
+        this.container.querySelectorAll('.masonry-item').forEach(wrapper => {
+            const img = wrapper.querySelector('img');
+            if (img) {
+                img.classList.remove('masonry-processed');
+                img.style.visibility = '';
+                wrapper.parentNode.insertBefore(img, wrapper);
+                wrapper.remove();
+            }
+        });
+        
+        // Also remove processed class from any standalone images
+        this.container.querySelectorAll('img.masonry-processed').forEach(img => {
+            img.classList.remove('masonry-processed');
+            img.style.visibility = '';
+        });
+        
+        // Restart the process
+        this.showLoadingState();
+        this.preloadAllImages();
     }
     
     // Public method to add new images
     addItems(newImages) {
         // Implementation for dynamically adding images
-        this.loadImages();
+        this.preloadAllImages();
     }
     
     // Lightbox functionality
@@ -370,14 +497,3 @@ class MasonryLayout {
         document.body.appendChild(lightbox);
     }
 }
-
-// Initialize masonry when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize masonry for the photo gallery
-    window.photoMasonry = new MasonryLayout('.windowContent', {
-        minColumnWidth: 250,
-        maxColumnWidth: 380,
-        gap: 12,
-        responsive: true
-    });
-});

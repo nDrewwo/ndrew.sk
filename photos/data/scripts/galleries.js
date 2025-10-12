@@ -47,27 +47,46 @@ class PhotoGalleries {
             container.appendChild(windowElement);
         });
         
-        // Initialize masonry first, then override click handlers
-        this.initializeMasonry();
-        // Wait a bit for masonry to process, then attach our handlers
+        // Wait for DOM to be fully ready, then initialize masonry
         setTimeout(() => {
-            this.attachImageClickHandlers();
-        }, 100);
+            this.initializeMasonry();
+        }, 50);
     }
 
     initializeMasonry() {
         // Re-initialize masonry for all .windowContent elements
         document.querySelectorAll('.windowContent').forEach(container => {
             if (!container.masonryInitialized) {
-                new MasonryLayout(container, {
-                    minColumnWidth: 250,
-                    maxColumnWidth: 380,
-                    gap: 12,
-                    responsive: true
-                });
-                container.masonryInitialized = true;
+                // Ensure container has proper dimensions before initializing masonry
+                if (container.clientWidth > 0) {
+                    new MasonryLayout(container, {
+                        minColumnWidth: 250,
+                        maxColumnWidth: 380,
+                        gap: 12,
+                        responsive: true
+                    });
+                    container.masonryInitialized = true;
+                } else {
+                    // If container doesn't have width yet, try again later
+                    setTimeout(() => {
+                        if (!container.masonryInitialized && container.clientWidth > 0) {
+                            new MasonryLayout(container, {
+                                minColumnWidth: 250,
+                                maxColumnWidth: 380,
+                                gap: 12,
+                                responsive: true
+                            });
+                            container.masonryInitialized = true;
+                        }
+                    }, 100);
+                }
             }
         });
+
+        // Wait for masonry to initialize, then attach our custom click handlers
+        setTimeout(() => {
+            this.attachImageClickHandlers();
+        }, 200);
     }
 
     attachImageClickHandlers() {
@@ -125,5 +144,15 @@ class PhotoGalleries {
 
 // Initialize galleries when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    window.photoGalleries = new PhotoGalleries();
+    // Wait for fonts to load to ensure proper sizing
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => {
+            window.photoGalleries = new PhotoGalleries();
+        });
+    } else {
+        // Fallback for browsers without font loading API
+        setTimeout(() => {
+            window.photoGalleries = new PhotoGalleries();
+        }, 100);
+    }
 });
