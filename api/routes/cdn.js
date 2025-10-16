@@ -413,15 +413,55 @@ router.get('/cdn/photo-galleries', async (req, res) => {
       if (stats.isDirectory()) {
         // Get all images in this folder
         const folderContents = await fs.readdir(itemPath);
-        const images = folderContents.filter(file => 
+        const imageFiles = folderContents.filter(file => 
           /\.(jpg|jpeg|png|gif|webp)$/i.test(file)
         );
+        
+        // Get orientation info for each image
+        const images = [];
+        for (const imageFile of imageFiles) {
+          const imagePath = path.join(itemPath, imageFile);
+          
+          try {
+            // Use Sharp to get image metadata (similar to your CDN quality processing)
+            const sharp = require('sharp');
+            const metadata = await sharp(imagePath).metadata();
+            
+            // Check EXIF orientation to determine if image is rotated
+            const orientation = metadata.orientation || 1;
+            const isRotated = orientation >= 5 && orientation <= 8; // orientations 5,6,7,8 involve 90° rotation
+            
+            // Determine if image is vertical considering both dimensions and EXIF rotation
+            let isVertical;
+            if (isRotated) {
+              // If rotated 90°, swap width/height for comparison
+              isVertical = metadata.width > metadata.height;
+            } else {
+              // Normal comparison
+              isVertical = metadata.height > metadata.width;
+            }
+            
+            images.push({
+              path: `photos/${item}/${imageFile}`,
+              filename: imageFile,
+              orientation: isVertical ? 'vertical' : 'horizontal'
+            });
+          } catch (error) {
+            // If we can't read metadata, add the image without orientation info
+            console.warn(`Could not read metadata for ${imageFile}:`, error.message);
+            images.push({
+              path: `photos/${item}/${imageFile}`,
+              filename: imageFile,
+              orientation: 'unknown'
+            });
+          }
+        }
         
         galleries.push({
           name: item,
           path: `photos/${item}`,
           imageCount: images.length,
-          images: images.map(img => `photos/${item}/${img}`)
+          images: images
         });
       }
     }

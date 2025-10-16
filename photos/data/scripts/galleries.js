@@ -35,10 +35,12 @@ class PhotoGalleries {
                     <img src="https://cdn.ndrew.sk/icons/ndrew.sk/exit.png" alt="imagegoezhere" class="exiticon">
                 </div>
                 <div class="windowContent">
-                    ${gallery.images.map(imagePath => `
-                        <img src="${this.cdnBase}/${imagePath}?quality=medium" 
-                            alt="${imagePath}" 
-                            data-full-res="${this.cdnBase}/${imagePath}"
+                    ${gallery.images.map(image => `
+                        <img src="${this.cdnBase}/${image.path}?quality=medium" 
+                            alt="${image.filename}" 
+                            data-full-res="${this.cdnBase}/${image.path}"
+                            data-orientation="${image.orientation}"
+                            data-aspect-ratio="${image.aspectRatio}"
                             class="gallery-image">
                     `).join('')}
                 </div>
