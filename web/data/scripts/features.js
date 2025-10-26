@@ -59,7 +59,7 @@ function renderBreakingNews() {
         <div class="nametag">
           <h1>Breaking News</h1>
         </div>
-        <img src="data/assets/exit.png" alt="imagegoezhere" class="exiticon">
+        <img src="https://cdn.ndrew.sk/icons/ndrew.sk/exit.png" alt="imagegoezhere" class="exiticon">
       </div>
       <div class="widowContent" id="qotd">
         <marquee id="news" direction="left"></marquee>
