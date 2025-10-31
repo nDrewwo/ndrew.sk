@@ -8,10 +8,10 @@ document.addEventListener('click', function(event) {
 
         if (windowContent.style.display === 'none') {
             windowContent.style.display = '';
-            event.target.src = 'data/assets/exit.png';
+            event.target.src = 'https://cdn.ndrew.sk/icons/ndrew.sk/exit.png';
         } else {
             windowContent.style.display = 'none';
-            event.target.src = 'data/assets/square.png';
+            event.target.src = 'https://cdn.ndrew.sk/icons/ndrew.sk/square.png';
         }
     }
 });

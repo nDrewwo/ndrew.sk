@@ -4,6 +4,14 @@ function updateMusicStatus(data) {
     document.getElementById('songArtist').textContent = data.artist;
     document.getElementById('muzicstatus').textContent = data.status;
     document.getElementById('songCover').src = data.albumArt; // Update the song cover image
+    
+    // Show/hide the spinning disk based on playing status
+    const spinImage = document.getElementById('spin-image');
+    if (data.status === 'Currently playing') {
+        spinImage.style.display = 'block';
+    } else {
+        spinImage.style.display = 'none';
+    }
 }
 
 // Function to fetch data from the new endpoint
