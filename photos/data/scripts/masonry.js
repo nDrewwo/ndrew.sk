@@ -113,57 +113,68 @@ class MasonryLayout {
         // Mark images as being processed to avoid double-processing
         images.forEach(img => {
             img.classList.add('masonry-processed');
+            // keep the image hidden until we explicitly show it
             img.style.visibility = 'hidden';
         });
 
-        let loadedCount = 0;
         const imagePromises = [];
+        const placeholders = [];
 
-        images.forEach((img, index) => {
-            const promise = new Promise((resolve, reject) => {
+        images.forEach((img) => {
+            const promise = new Promise((resolve) => {
                 // Skip if already wrapped
                 if (img.parentElement && img.parentElement.classList.contains('masonry-item')) {
                     resolve();
                     return;
                 }
-                
-                // Create wrapper for each image
+
+                // Create wrapper for each image but do NOT insert into DOM yet
                 const wrapper = document.createElement('div');
                 wrapper.className = 'masonry-item';
                 wrapper.style.position = 'absolute';
                 wrapper.style.transition = 'all 0.3s ease';
                 wrapper.style.cursor = 'pointer';
-                wrapper.style.visibility = 'hidden'; // Hide wrapper initially too
-                
-                // Insert wrapper before image and move image into wrapper
-                img.parentNode.insertBefore(wrapper, img);
+                wrapper.style.visibility = 'hidden'; // hidden until all images loaded
+
+                // Create a placeholder comment to preserve original location/order
+                const placeholder = document.createComment('masonry-placeholder');
+                placeholders.push({ placeholder, wrapper });
+
+                // Replace image in DOM with placeholder to keep layout stable
+                const parent = img.parentNode;
+                if (parent) {
+                    parent.replaceChild(placeholder, img);
+                }
+
+                // Prepare the image inside the wrapper (not appended to DOM yet)
                 wrapper.appendChild(img);
-                
+
                 // Style the image
                 img.style.width = '100%';
                 img.style.height = 'auto';
                 img.style.display = 'block';
                 img.style.borderRadius = '4px';
-                img.style.visibility = 'visible'; // Make image visible within hidden wrapper
-                
+                img.style.visibility = 'hidden'; // keep hidden until all images loaded
+
                 // Add hover effect and click functionality
                 wrapper.addEventListener('mouseenter', () => {
                     wrapper.style.transform = 'scale(1.02)';
                     wrapper.style.zIndex = '10';
                     wrapper.style.boxShadow = '0 8px 25px rgba(124, 176, 255, 0.3)';
                 });
-                
+
                 wrapper.addEventListener('mouseleave', () => {
                     wrapper.style.transform = 'scale(1)';
                     wrapper.style.zIndex = '1';
                     wrapper.style.boxShadow = 'none';
                 });
-                
+
                 // Add click functionality for lightbox
                 wrapper.addEventListener('click', () => {
                     this.openLightbox(img.src);
                 });
-                
+
+                // When image loads (or is already loaded), compute item data
                 if (img.complete && img.naturalHeight !== 0) {
                     this.handleImageLoad(wrapper, img);
                     resolve();
@@ -174,25 +185,52 @@ class MasonryLayout {
                     });
                     img.addEventListener('error', () => {
                         console.warn('Failed to load image:', img.src);
-                        // Still resolve to not block the loading process
+                        // still resolve to avoid blocking
                         resolve();
                     });
                 }
             });
-            
+
             imagePromises.push(promise);
         });
 
-        // Wait for all images to load before starting layout
+        // Once all images are ready, append wrappers back into DOM in original order
         Promise.all(imagePromises).then(() => {
+            // Replace placeholders with wrappers in the same order
+            placeholders.forEach(({ placeholder, wrapper }) => {
+                if (!placeholder.parentNode) {
+                    // fallback: append to container if placeholder lost
+                    this.container.appendChild(wrapper);
+                } else {
+                    placeholder.parentNode.replaceChild(wrapper, placeholder);
+                }
+
+                // make wrapper visible now that its image is loaded
+                wrapper.style.visibility = 'visible';
+                const img = wrapper.querySelector('img');
+                if (img) img.style.visibility = 'visible';
+
+                // Ensure itemData pushed if handleImageLoad didn't (edge cases)
+                if (!wrapper.itemData) {
+                    const imgEl = wrapper.querySelector('img');
+                    const aspectRatio = (imgEl && imgEl.naturalHeight) ? imgEl.naturalWidth / imgEl.naturalHeight : 1;
+                    wrapper.itemData = {
+                        element: wrapper,
+                        img: imgEl,
+                        aspectRatio,
+                        isLandscape: aspectRatio > 1.4,
+                        isPortrait: aspectRatio < 0.8,
+                        naturalWidth: imgEl ? imgEl.naturalWidth : 0,
+                        naturalHeight: imgEl ? imgEl.naturalHeight : 0
+                    };
+                    this.items.push(wrapper.itemData);
+                }
+            });
+
             this.hideLoadingState();
             this.isLoading = false;
-            
-            // Show all wrappers
-            this.container.querySelectorAll('.masonry-item').forEach(wrapper => {
-                wrapper.style.visibility = 'visible';
-            });
-            
+
+            // Start layout after all wrappers appended
             this.layout();
         });
     }
