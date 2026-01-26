@@ -101,7 +101,11 @@ main {
     justify-content: center;
 }
 
-.status, #animeCount, #favAnime, #mangaCount, #favManga{
+.status{
+    color: #7CB0FF;
+}
+
+.blue{
     color: #7CB0FF;
 }
 

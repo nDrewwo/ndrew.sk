@@ -14,7 +14,7 @@ router.get('/media', async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
-    const rows = await conn.query("SELECT * FROM media");
+    const rows = await conn.query("SELECT title,author,type,status,rating,cover_image FROM media");
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -57,6 +57,35 @@ router.get('/movies', async (req, res) => {
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+router.get('/series', async (req, res) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query("SELECT title,author,status,rating,cover_image FROM media WHERE type = 'series'");
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+router.get('/count', async (req, res) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const [animeCount] = await conn.query("SELECT COUNT(*) as COUNT FROM media WHERE type = 'anime'");
+    const [mangaCount] = await conn.query("SELECT COUNT(*) as COUNT FROM media WHERE type = 'manga'");
+    const [movieCount] = await conn.query("SELECT COUNT(*) as COUNT FROM media WHERE type = 'movie'");
+    const [seriesCount] = await conn.query("SELECT COUNT(*) as COUNT FROM media WHERE type = 'movie'");
+    res.json({ anime: Number(animeCount.COUNT), manga: Number(mangaCount.COUNT), movies: Number(movieCount.COUNT), series: Number(seriesCount.COUNT) });
+  } catch (err) {
+    res.status(500).json({ error: "Database error" });
   } finally {
     if (conn) conn.release();
   }

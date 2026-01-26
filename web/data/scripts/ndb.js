@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAndDisplayData('/anime', 'anime');
     fetchAndDisplayData('/manga', 'manga');
     fetchAndDisplayData('/movies', 'movies');
+    fetchAndDisplayData('/series', 'series')
 });
 
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
@@ -52,3 +53,21 @@ async function fetchAndDisplayData(endpoint, containerId) {
         console.error('Error fetching data:', error);
     }
 }
+
+async function fetchAndDisplayCounts() {
+    try {
+        const baseUrl = isLocalhost ? 'http://localhost:3002' : 'https://api.ndrew.sk';
+        const response = await fetch(`${baseUrl}/count`);
+        const counts = await response.json();
+
+        document.getElementById('animeCount').textContent = counts.anime;
+        document.getElementById('mangaCount').textContent = counts.manga;
+        document.getElementById('movieCount').textContent = counts.movies;
+        document.getElementById('seriesCount').textContent = counts.series;
+    } catch (error) {
+        console.error('Error fetching counts:', error);
+    }
+}
+
+// Call the function to fetch and display counts
+fetchAndDisplayCounts();
