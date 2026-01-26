@@ -71,3 +71,22 @@ async function fetchAndDisplayCounts() {
 
 // Call the function to fetch and display counts
 fetchAndDisplayCounts();
+
+async function fetchAndDisplayFavourites() {
+    try {
+        const baseUrl = isLocalhost ? 'http://localhost:3002' : 'https://api.ndrew.sk';
+        const response = await fetch(`${baseUrl}/favourites`);
+        const favourites = await response.json();
+
+        // Use fallbacks so the UI stays readable if a value is missing.
+        document.getElementById('favAnime').textContent = favourites.anime || '-';
+        document.getElementById('favManga').textContent = favourites.manga || '-';
+        document.getElementById('favMovie').textContent = favourites.movie || '-';
+        document.getElementById('favSeries').textContent = favourites.series || '-';
+    } catch (error) {
+        console.error('Error fetching favourites:', error);
+    }
+}
+
+// Call the function to fetch and display favourites
+fetchAndDisplayFavourites();

@@ -91,4 +91,22 @@ router.get('/count', async (req, res) => {
   }
 });
 
+router.get('/favourites', async (req, res) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const [row] = await conn.query("SELECT favourite_movie,favourite_series,favourite_anime,favourite_manga FROM favourites");
+    res.json({
+      movie: row?.favourite_movie ?? null,
+      series: row?.favourite_series ?? null,
+      anime: row?.favourite_anime ?? null,
+      manga: row?.favourite_manga ?? null,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Database error" });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
 module.exports = router;
