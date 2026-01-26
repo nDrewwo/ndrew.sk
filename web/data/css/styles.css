@@ -63,6 +63,10 @@ marquee {
     width: 35%;
 }
 
+#rightcolumn .window{
+    margin-right: 0;
+}
+
 #leftcolumn{
     width: 65%;
 }
