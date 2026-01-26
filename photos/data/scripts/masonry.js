@@ -295,6 +295,17 @@ class MasonryLayout {
             this.positionItem(item, columnWidth, columns);
         });
         
+        // Calculate horizontal offset to center the masonry grid
+        const containerWidth = this.container.clientWidth;
+        const totalMasonryWidth = (columns * columnWidth) + ((columns - 1) * this.options.gap);
+        const horizontalOffset = Math.max(0, (containerWidth - totalMasonryWidth) / 2);
+        
+        // Apply the offset to all items
+        this.items.forEach(item => {
+            const currentLeft = parseFloat(item.element.style.left);
+            item.element.style.left = `${currentLeft + horizontalOffset}px`;
+        });
+        
         // Set container height
         const maxHeight = Math.max(...this.columns);
         this.container.style.height = `${maxHeight + this.options.gap}px`;
