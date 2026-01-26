@@ -187,10 +187,6 @@ body {
     transition: all 0.3s ease;
 }
 
-/* .masonry-item:hover {
-    box-shadow: 0 8px 25px rgba(124, 176, 255, 0.3);
-} */
-
 /* Loading state */
 .masonry-item img[src=""] {
     background-color: #555;

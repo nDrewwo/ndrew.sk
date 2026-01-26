@@ -15,6 +15,11 @@ class MasonryLayout {
             ...options
         };
         
+        // Store first instance globally for lightbox access
+        if (!window.photoMasonry) {
+            window.photoMasonry = this;
+        }
+        
         this.init();
     }
     

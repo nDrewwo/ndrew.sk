@@ -134,12 +134,20 @@ class PhotoGalleries {
     }
 
     openLightbox(imageSrc) {
-        // Use existing lightbox functionality from masonry.js
+        // Create lightbox if it doesn't exist
+        if (!document.getElementById('photo-lightbox')) {
+            if (window.photoMasonry) {
+                window.photoMasonry.createLightbox();
+            } else {
+                // Create a temporary MasonryLayout instance just for lightbox
+                const tempMasonry = new MasonryLayout(document.body, {});
+                tempMasonry.createLightbox();
+            }
+        }
+        
+        // Use existing lightbox functionality
         if (window.photoMasonry && window.photoMasonry.openLightbox) {
             window.photoMasonry.openLightbox(imageSrc);
-        } else {
-            // Fallback: open in new tab
-            window.open(imageSrc, '_blank');
         }
     }
 }
