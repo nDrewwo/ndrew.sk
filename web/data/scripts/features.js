@@ -5,7 +5,6 @@ const BREAKING_NEWS_URL = isLocalhost ? 'http://localhost:3002/breaking-news' : 
 
 const CACHE_KEY_FEATURES = 'featureToggles';
 const CACHE_KEY_NEWS = 'breakingNews';
-const CACHE_KEY_NSFW_QUOTES = 'nsfwQuotes';
 
 const CACHE_TIME = 1 * 60 * 1000; // 1 Minute
 
@@ -72,25 +71,6 @@ function renderBreakingNews() {
   container.insertAdjacentHTML('beforeend', html);
 }
 
-function renderNsfwQuotes() {
-  const container = document.getElementById('featureContainer');
-
-  const html = `
-    <div class="window">
-      <div class="topbar">
-        <div class="nametag">
-          <h1>NSFW Quotes</h1>
-        </div>
-        <img src="https://cdn.ndrew.sk/icons/ndrew.sk/exit.png" alt="imagegoezhere" class="exiticon">
-      </div>
-      <div class="widowContent" id="nsfwQuoteContent">
-        <p id="nsfwQuote"></p>
-      </div>
-    </div>
-  `;
-
-  container.insertAdjacentHTML('beforeend', html);
-}
 
 async function loadBreakingNews() {
   const newsData = await getBreakingNews();
@@ -112,6 +92,7 @@ async function loadNsfwQuotes() {
   }
 }
 
+
 async function initFeatures() {
   try {
     const toggles = await getFeatureToggles();
@@ -124,7 +105,6 @@ async function initFeatures() {
 
     const nsfwQuotes = toggles.find(f => f.name === 'nsfwQuotes' && f.value === 1);
     if (nsfwQuotes) {
-      renderNsfwQuotes();
       loadNsfwQuotes();
     }
 
