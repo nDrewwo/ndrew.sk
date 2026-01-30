@@ -77,7 +77,7 @@ router.get('/random-quote', async (req, res) => {
   }
 });
 
-router.post('/addquote', async (req, res) => {
+router.post('/add-quote', async (req, res) => {
   let conn;
   try {
     let { author, quote } = req.body;
