@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add a Quote</title>
+    <link rel="stylesheet" href="data/css/main.css">
+    <link rel="stylesheet" href="data/css/addQuote.css">
+    <link rel="icon" href="https://cdn.ndrew.sk/icons/ndrew.sk/faviocn.svg" type="image/svg+xml">
+</head>
+<body>
+    <div class="window">
+        <div class="topbar">
+            <div class="nametag">
+                <h1>Add Quote</h1>
+            </div>
+            <img src="https://cdn.ndrew.sk/icons/ndrew.sk/exit.png" alt="imagegoezhere" class="exiticon">
+        </div>
+        <div class="windowContent">
+            <form id="quoteForm">
+                <input type="text" id="quote" name="quote" placeholder="Quote" required>
+                <input type="text" id="author" name="author" placeholder="Author" required>
+                <button type="submit">Add Quote</button>
+            </form>
+        </div>
+    </div>
+    <script src="data/scripts/quote-add.js"></script>
+</body>
+</html>

@@ -6,7 +6,7 @@ const pool = mariadb.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
-  database: 'ndrew',
+  database: process.env.DB_NAME,
   connectionLimit: 5,
 });
 
@@ -15,7 +15,7 @@ router.get('/feature-toggles', async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
-    const rows = await conn.query('SELECT name, value FROM featureToggle');
+    const rows = await conn.query('SELECT name, value FROM feature_toggles');
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: 'Database error', details: err.message });
@@ -34,7 +34,7 @@ router.post('/update-feature-toggles', async (req, res) => {
   try {
     conn = await pool.getConnection();
     const updatePromises = toggles.map(toggle =>
-      conn.query('UPDATE featureToggle SET value = ? WHERE name = ?', [toggle.value, toggle.name])
+      conn.query('UPDATE feature_toggles SET value = ? WHERE name = ?', [toggle.value, toggle.name])
     );
     await Promise.all(updatePromises);
     res.status(200).json({ message: 'Feature toggles updated successfully' });

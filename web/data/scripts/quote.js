@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const endpoint = 'https://api-quotes.ndrew.sk/randomquote';
+    const endpoint = 'https://api-quotes.ndrew.sk/random-mquote';
 
     fetch(endpoint)
         .then(response => response.json())
