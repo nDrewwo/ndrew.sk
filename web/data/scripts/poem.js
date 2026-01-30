@@ -1,6 +1,6 @@
 async function fetchPoem() {
     try {
-        const poemUrl =  'https://api-quotes.ndrew.sk/randompoem';
+        const poemUrl =  'https://api.ndrew.sk/random-poem';
         const response = await fetch(poemUrl);
         const data = await response.json();
 

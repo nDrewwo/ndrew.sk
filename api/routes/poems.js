@@ -34,7 +34,7 @@ router.get('/poems', async (req, res) => {
   }
 });
 
-router.get('/randompoem', async (req, res) => {
+router.get('/random-poem', async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
