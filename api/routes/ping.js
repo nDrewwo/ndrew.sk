@@ -8,7 +8,6 @@ const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
 const urls = [
     'https://ndrew.sk',
     'https://adinomart.ndrew.sk',
-    'https://labak.spsmt.sk'
 ];
 
 // Function to check the status of a URL
