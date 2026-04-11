@@ -9,8 +9,7 @@ async function fetchStatus() {
         const statusMap = {
             "https://ndrew.sk": "ndrewSkStatus",
             "https://adinomart.ndrew.sk": "adinoMartStatus",
-            "https://quotes.ndrew.sk": "quotesStatus",
-            "https://labak.ndrew.sk": "labakStatus"
+            "https://labak.spsmt.sk": "labakStatus"
 
         };
         // Iterate over the response and update the corresponding elements
