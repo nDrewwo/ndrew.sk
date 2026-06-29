@@ -1,168 +1,84 @@
-class PhotoGalleries {
-    constructor() {
-        this.isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        this.apiBase = this.isLocalhost ? 'http://localhost:3002' : 'https://api.ndrew.sk';
-        this.cdnBase = this.isLocalhost ? 'http://localhost:3000' : 'https://cdn.ndrew.sk';
-        this.init();
-    }
+const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+const apiBase = isLocalhost ? 'http://localhost:3002' : 'https://api.ndrew.sk';
+const cdnBase = isLocalhost ? 'http://localhost:3000' : 'https://cdn.ndrew.sk';
 
-    async init() {
-        try {
-            const response = await fetch(`${this.apiBase}/cdn/photo-galleries`);
-            if (!response.ok) throw new Error('Failed to fetch galleries');
-            
-            const galleries = await response.json();
-            this.renderGalleries(galleries);
-        } catch (error) {
-            console.error('Error loading galleries:', error);
-        }
-    }
+function createLightbox() {
+  const lb = document.createElement('div');
+  lb.id = 'lightbox';
+  lb.innerHTML = '<img id="lb-img"><span id="lb-close">×</span>';
+  document.body.appendChild(lb);
 
-    renderGalleries(galleries) {
-        const container = document.body;
-        
-        galleries.forEach(gallery => {
-            if (gallery.images.length === 0) return; // Skip empty galleries
-            
-            const windowElement = document.createElement('div');
-            windowElement.className = 'window';
-            
-            windowElement.innerHTML = `
-                <div class="topbar">
-                    <div class="nametag">
-                        <h1>${gallery.name}</h1>
-                    </div>
-                    <img src="https://cdn.ndrew.sk/icons/ndrew.sk/exit.png" alt="imagegoezhere" class="exiticon">
-                </div>
-                <div class="windowContent">
-                    ${gallery.images.map(image => `
-                        <img src="${this.cdnBase}/${image.path}?quality=medium" 
-                            alt="${image.filename}" 
-                            data-full-res="${this.cdnBase}/${image.path}"
-                            data-orientation="${image.orientation}"
-                            data-aspect-ratio="${image.aspectRatio}"
-                            class="gallery-image">
-                    `).join('')}
-                </div>
-            `;
-            
-            container.appendChild(windowElement);
-        });
-        
-        // Wait for DOM to be fully ready, then initialize masonry
-        setTimeout(() => {
-            this.initializeMasonry();
-        }, 50);
-    }
+  const close = () => {
+    lb.style.display = 'none';
+    document.getElementById('lb-img').src = '';
+    document.body.style.overflow = '';
+  };
 
-    initializeMasonry() {
-        // Re-initialize masonry for all .windowContent elements
-        document.querySelectorAll('.windowContent').forEach(container => {
-            if (!container.masonryInitialized) {
-                // Ensure container has proper dimensions before initializing masonry
-                if (container.clientWidth > 0) {
-                    new MasonryLayout(container, {
-                        minColumnWidth: 250,
-                        maxColumnWidth: 380,
-                        gap: 12,
-                        responsive: true
-                    });
-                    container.masonryInitialized = true;
-                } else {
-                    // If container doesn't have width yet, try again later
-                    setTimeout(() => {
-                        if (!container.masonryInitialized && container.clientWidth > 0) {
-                            new MasonryLayout(container, {
-                                minColumnWidth: 250,
-                                maxColumnWidth: 380,
-                                gap: 12,
-                                responsive: true
-                            });
-                            container.masonryInitialized = true;
-                        }
-                    }, 100);
-                }
-            }
-        });
-
-        // Wait for masonry to initialize, then attach our custom click handlers
-        setTimeout(() => {
-            this.attachImageClickHandlers();
-        }, 200);
-    }
-
-    attachImageClickHandlers() {
-        document.querySelectorAll('.gallery-image').forEach(img => {
-            // Remove any existing click handlers from masonry
-            const wrapper = img.parentElement;
-            if (wrapper && wrapper.classList.contains('masonry-item')) {
-                // Create a new wrapper without the masonry click handler
-                const newWrapper = wrapper.cloneNode(false);
-                wrapper.parentNode.replaceChild(newWrapper, wrapper);
-                newWrapper.appendChild(img);
-                
-                // Add our custom click handler
-                newWrapper.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const fullResUrl = img.dataset.fullRes;
-                    this.openLightbox(fullResUrl);
-                });
-
-                // Add hover effects back
-                newWrapper.addEventListener('mouseenter', () => {
-                    newWrapper.style.transform = 'scale(1.02)';
-                    newWrapper.style.zIndex = '10';
-                    newWrapper.style.boxShadow = '0 8px 25px rgba(124, 176, 255, 0.3)';
-                });
-                
-                newWrapper.addEventListener('mouseleave', () => {
-                    newWrapper.style.transform = 'scale(1)';
-                    newWrapper.style.zIndex = '1';
-                    newWrapper.style.boxShadow = 'none';
-                });
-            } else {
-                // If not wrapped by masonry yet, add click handler directly
-                img.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const fullResUrl = e.target.dataset.fullRes;
-                    this.openLightbox(fullResUrl);
-                });
-            }
-        });
-    }
-
-    openLightbox(imageSrc) {
-        // Create lightbox if it doesn't exist
-        if (!document.getElementById('photo-lightbox')) {
-            if (window.photoMasonry) {
-                window.photoMasonry.createLightbox();
-            } else {
-                // Create a temporary MasonryLayout instance just for lightbox
-                const tempMasonry = new MasonryLayout(document.body, {});
-                tempMasonry.createLightbox();
-            }
-        }
-        
-        // Use existing lightbox functionality
-        if (window.photoMasonry && window.photoMasonry.openLightbox) {
-            window.photoMasonry.openLightbox(imageSrc);
-        }
-    }
+  lb.addEventListener('click', e => { if (e.target === lb) close(); });
+  document.getElementById('lb-close').addEventListener('click', close);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && lb.style.display === 'flex') close();
+  });
 }
 
-// Initialize galleries when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    // Wait for fonts to load to ensure proper sizing
-    if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(() => {
-            window.photoGalleries = new PhotoGalleries();
-        });
-    } else {
-        // Fallback for browsers without font loading API
-        setTimeout(() => {
-            window.photoGalleries = new PhotoGalleries();
-        }, 100);
+function openLightbox(src) {
+  const lb = document.getElementById('lightbox');
+  document.getElementById('lb-img').src = src;
+  lb.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function renderGallery(gallery) {
+  if (!gallery.images.length) return;
+
+  const win = document.createElement('div');
+  win.className = 'window';
+  win.innerHTML = `
+    <div class="topbar">
+      <div class="nametag"><h1>${gallery.name}</h1></div>
+      <img src="https://cdn.ndrew.sk/icons/ndrew.sk/exit.png" alt="" class="exiticon">
+    </div>
+    <div class="windowContent"></div>
+  `;
+
+  win.querySelector('.exiticon').addEventListener('click', () => win.remove());
+
+  const content = win.querySelector('.windowContent');
+
+  gallery.images.forEach(image => {
+    const item = document.createElement('div');
+    item.className = 'gallery-item';
+    if (image.width && image.height) {
+      item.style.aspectRatio = `${image.width} / ${image.height}`;
     }
-});
+
+    const img = document.createElement('img');
+    img.src = `${cdnBase}/${image.path}?quality=medium`;
+    img.alt = image.filename;
+    if (image.width) img.width = image.width;
+    if (image.height) img.height = image.height;
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.addEventListener('load', () => { item.style.background = 'none'; item.style.animation = 'none'; });
+
+    item.addEventListener('click', () => openLightbox(`${cdnBase}/${image.path}`));
+    item.appendChild(img);
+    content.appendChild(item);
+  });
+
+  document.body.appendChild(win);
+}
+
+async function init() {
+  createLightbox();
+  try {
+    const res = await fetch(`${apiBase}/cdn/photo-galleries`);
+    if (!res.ok) throw new Error(res.statusText);
+    const galleries = await res.json();
+    galleries.forEach(renderGallery);
+  } catch (err) {
+    console.error('Failed to load galleries:', err);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);

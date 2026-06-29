@@ -2,9 +2,13 @@ const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
 const multer = require('multer');
+const sharp = require('sharp');
 const authenticateToken = require('../middleware/authenticateToken');
 
 const router = express.Router();
+
+const galleryCache = { data: null, ts: 0 };
+const GALLERY_CACHE_TTL = 60 * 1000;
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -396,76 +400,56 @@ router.delete('/cdn/delete', authenticateToken, async (req, res) => {
 // Get photo galleries (folders in photos directory)
 router.get('/cdn/photo-galleries', async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  
+
+  if (galleryCache.data && Date.now() - galleryCache.ts < GALLERY_CACHE_TTL) {
+    return res.json(galleryCache.data);
+  }
+
   const photosDir = path.join(__dirname, '../../cdn/public/photos');
-  
+
   try {
-    // Check if photos directory exists
     await fs.access(photosDir);
-    
+
     const items = await fs.readdir(photosDir);
-    const galleries = [];
-    
-    for (const item of items) {
+    const galleryPromises = items.map(async (item) => {
       const itemPath = path.join(photosDir, item);
       const stats = await fs.stat(itemPath);
-      
-      if (stats.isDirectory()) {
-        // Get all images in this folder
-        const folderContents = await fs.readdir(itemPath);
-        const imageFiles = folderContents.filter(file => 
-          /\.(jpg|jpeg|png|gif|webp)$/i.test(file)
-        );
-        
-        // Get orientation info for each image
-        const images = [];
-        for (const imageFile of imageFiles) {
-          const imagePath = path.join(itemPath, imageFile);
-          
-          try {
-            // Use Sharp to get image metadata (similar to your CDN quality processing)
-            const sharp = require('sharp');
-            const metadata = await sharp(imagePath).metadata();
-            
-            // Check EXIF orientation to determine if image is rotated
-            const orientation = metadata.orientation || 1;
-            const isRotated = orientation >= 5 && orientation <= 8; // orientations 5,6,7,8 involve 90° rotation
-            
-            // Determine if image is vertical considering both dimensions and EXIF rotation
-            let isVertical;
-            if (isRotated) {
-              // If rotated 90°, swap width/height for comparison
-              isVertical = metadata.width > metadata.height;
-            } else {
-              // Normal comparison
-              isVertical = metadata.height > metadata.width;
-            }
-            
-            images.push({
-              path: `photos/${item}/${imageFile}`,
-              filename: imageFile,
-              orientation: isVertical ? 'vertical' : 'horizontal'
-            });
-          } catch (error) {
-            // If we can't read metadata, add the image without orientation info
-            console.warn(`Could not read metadata for ${imageFile}:`, error.message);
-            images.push({
-              path: `photos/${item}/${imageFile}`,
-              filename: imageFile,
-              orientation: 'unknown'
-            });
-          }
+      if (!stats.isDirectory()) return null;
+
+      const folderContents = await fs.readdir(itemPath);
+      const imageFiles = folderContents.filter(f => /\.(jpg|jpeg|png|gif|webp)$/i.test(f));
+
+      const imagePromises = imageFiles.map(async (imageFile) => {
+        const imagePath = path.join(itemPath, imageFile);
+        try {
+          const metadata = await sharp(imagePath).metadata();
+          const orientation = metadata.orientation || 1;
+          const isRotated = orientation >= 5 && orientation <= 8;
+          const displayWidth = isRotated ? metadata.height : metadata.width;
+          const displayHeight = isRotated ? metadata.width : metadata.height;
+          const isVertical = displayHeight > displayWidth;
+          return {
+            path: `photos/${item}/${imageFile}`,
+            filename: imageFile,
+            orientation: isVertical ? 'vertical' : 'horizontal',
+            width: displayWidth,
+            height: displayHeight,
+          };
+        } catch {
+          return { path: `photos/${item}/${imageFile}`, filename: imageFile, orientation: 'unknown', width: null, height: null };
         }
-        
-        galleries.push({
-          name: item,
-          path: `photos/${item}`,
-          imageCount: images.length,
-          images: images
-        });
-      }
-    }
-    
+      });
+
+      const images = await Promise.all(imagePromises);
+      return { name: item, path: `photos/${item}`, imageCount: images.length, images };
+    });
+
+    const results = await Promise.all(galleryPromises);
+    const galleries = results.filter(Boolean);
+
+    galleryCache.data = galleries;
+    galleryCache.ts = Date.now();
+
     res.json(galleries);
   } catch (error) {
     console.error('Error reading photos directory:', error);

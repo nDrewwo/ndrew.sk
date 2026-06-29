@@ -170,39 +170,76 @@ body {
 }
 
 .windowContent {
-    height: fit-content;
-    min-height: 200px;
-    position: relative;
+    column-count: 3;
+    column-gap: 10px;
+    padding: 10px;
+}
+
+@keyframes pulse {
+    0%, 100% { background-color: #555; }
+    50%       { background-color: #6a6a6a; }
+}
+
+.gallery-item {
+    break-inside: avoid;
+    margin-bottom: 10px;
     overflow: hidden;
-    margin: 10px;
-    display: flex;
+    border: 4px solid #7CB0FF;
+    background-color: #555;
+    animation: pulse 1.4s ease-in-out infinite;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.gallery-item:hover {
+    opacity: 0.85;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+#lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
     justify-content: center;
     align-items: center;
+    z-index: 1000;
 }
 
-/* Masonry layout styles */
-.masonry-item {
-    overflow: hidden;
-    border: #7CB0FF 4px solid;
-    transition: all 0.3s ease;
+#lb-img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 4px;
 }
 
-/* Loading state */
-.masonry-item img[src=""] {
-    background-color: #555;
-    min-height: 200px;
+#lb-close {
+    position: absolute;
+    top: 16px;
+    right: 24px;
+    font-size: 40px;
+    color: #7CB0FF;
+    cursor: pointer;
+    user-select: none;
+    line-height: 1;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .windowContent {
-        padding: 5px !important;
-    }
+#lb-close:hover {
+    color: #fff;
+}
 
-    body {
-        padding: 10px;
-        max-width: 100%;
-    }
+@media (max-width: 900px) {
+    .windowContent { column-count: 2; }
+}
+
+@media (max-width: 500px) {
+    .windowContent { column-count: 1; }
+    body { padding: 10px; max-width: 100%; }
 }
 
 .href {
