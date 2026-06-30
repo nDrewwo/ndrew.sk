@@ -1,0 +1,119 @@
+@import url("../../../web/data/css/main.css");
+
+body{
+    max-width: 90%;
+}
+
+.windowContent {
+    column-count: 3;
+    column-gap: 10px;
+    padding: 10px;
+}
+
+@keyframes pulse {
+    0%, 100% { background-color: #555; }
+    50%       { background-color: #6a6a6a; }
+}
+
+.gallery-item {
+    break-inside: avoid;
+    margin-bottom: 10px;
+    overflow: hidden;
+    border: 4px solid #7CB0FF;
+    background-color: #555;
+    animation: pulse 1.4s ease-in-out infinite;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.gallery-item:hover {
+    opacity: 0.85;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+#lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+#lb-img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+#lb-close {
+    position: absolute;
+    top: 16px;
+    right: 24px;
+    font-size: 40px;
+    color: #7CB0FF;
+    cursor: pointer;
+    user-select: none;
+    line-height: 1;
+}
+
+#lb-close:hover {
+    color: #fff;
+}
+
+@media (max-width: 900px) {
+    .windowContent { column-count: 2; }
+}
+
+@media (max-width: 500px) {
+    .windowContent { column-count: 1; }
+    body { padding: 10px; max-width: 100%; }
+}
+
+.href {
+    margin-top: 5px;
+    text-decoration: none;
+    color: #7CB0FF;
+    transition-duration: 0.3s;
+}
+
+.href:hover {
+    text-decoration: underline;
+}
+
+input {
+    margin: 0.5rem;
+    padding: 0.5rem;
+    border: solid 2px #7CB0FF;
+    width: 95%;
+    color: #f3f4f5;
+    background-color: #333;
+    outline: none;
+    font-family: 'Monocraft', sans-serif;
+}
+
+button {
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border: none;
+    background-color: #7CB0FF;
+    color: #000;
+    width: 95%;
+    cursor: pointer;
+    font-family: 'Monocraft', sans-serif;
+    font-size: medium;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}

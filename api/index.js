@@ -28,7 +28,6 @@ app.use((req, res, next) => {
 // Import routers
 const authRouter = require('./routes/auth');
 const spotifyRouter = require('./routes/spotify');
-const mediaRouter = require('./routes/media');
 const featureToggleRouter = require('./routes/featureToggle');
 const breakingNewsRouter = require('./routes/breakingNews');
 const pingRouter = require('./routes/ping');
@@ -39,7 +38,6 @@ const quotesRouter = require('./routes/quotes');
 // Use routers
 app.use('/', authRouter);
 app.use('/', spotifyRouter);
-app.use('/', mediaRouter);
 app.use('/', featureToggleRouter);
 app.use('/', breakingNewsRouter);
 app.use('/', pingRouter);
