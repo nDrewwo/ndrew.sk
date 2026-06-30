@@ -1,5 +1,8 @@
-#quoteForm{
-    margin: 10px;
+@import url("../../../web/data/css/main.css");
+
+body {
+    height: 100vh;
+    justify-content: center;
 }
 
 #quote{

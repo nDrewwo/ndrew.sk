@@ -13,7 +13,7 @@
 }
 
 .timeStamp{
-    color: #7CB0FF;
+    color: var(--color-accent);
 }
 
 @media screen and (max-width: 600px) {

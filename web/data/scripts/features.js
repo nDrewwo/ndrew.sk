@@ -61,7 +61,7 @@ function renderBreakingNews() {
         </div>
         <img src="https://cdn.ndrew.sk/icons/ndrew.sk/exit.png" alt="imagegoezhere" class="exiticon">
       </div>
-      <div class="widowContent" id="qotd">
+      <div class="windowContent" id="qotd">
         <marquee id="news" direction="left"></marquee>
         <a href="https://ndrew.sk/minute-by-minute" class="href">Minute by Minute</a>
       </div>

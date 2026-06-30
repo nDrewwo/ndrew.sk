@@ -50,11 +50,6 @@
     }
 }
 
-main {
-    display: flex;
-    justify-content: center;;
-}
-
 marquee {
     width: 100%;
 }
@@ -88,7 +83,7 @@ marquee {
     aspect-ratio: 1/1;
     margin-left: 10px;
     border: solid;
-    border-color: #7CB0FF;      
+    border-color: var(--color-accent);      
 }
 
 #qotd{
@@ -148,7 +143,7 @@ marquee {
     aspect-ratio: 1/1;
     border: solid;
     margin-left: 10px ;
-    border-color: #7CB0FF;
+    border-color: var(--color-accent);
 }
 
 #songinfo{
@@ -213,7 +208,7 @@ marquee {
 #terminalinput {
     border: none;
     background: none;
-    color: #f3f4f5;
+    color: var(--color-text-light);
     outline: none;
     width: 100%;
     font-family: 'Tickerbit';
@@ -230,7 +225,7 @@ footer{
     display: flex;
     justify-content: center;
     margin: 10px;
-    color: #f3f4f5;
+    color: var(--color-text-light);
 }
 
 #statusWindow{
@@ -278,16 +273,16 @@ footer{
 #chat-input input{
     width: 95%;
     height: 65%;
-    border: 2px solid #7CB0FF;
-    color: #f3f4f5;
-    background-color: #333;
+    border: 2px solid var(--color-accent);
+    color: var(--color-text-light);
+    background-color: var(--color-window);
     outline: none;
     padding: 5px;
     font-family: 'Tickerbit';
 }
 
 #chat-input input::placeholder{
-    color: #7CB0FF;
+    color: var(--color-accent);
     opacity: 1;
 }
 
@@ -308,7 +303,7 @@ footer{
 }
 
 .name{
-    color: #7CB0FF;
+    color: var(--color-accent);
 }
 
 .msgContent{

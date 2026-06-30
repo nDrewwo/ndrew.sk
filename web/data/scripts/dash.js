@@ -42,7 +42,7 @@ fetch(featureTogglesEndpoint)
         return response.json();
     })
     .then(toggles => {
-        const form = document.querySelector('.widowContent form');
+        const form = document.querySelector('.windowContent form');
         const updateButton = form.querySelector('button[type="submit"]');
         toggles.forEach(toggle => {
             const featureDiv = document.createElement('div');
@@ -100,7 +100,7 @@ fetch(featureTogglesEndpoint)
     });
 
 // Handle breaking news form (second form on the page)
-const newsForm = document.querySelectorAll('.widowContent form')[1]; // Get the second form
+const newsForm = document.querySelectorAll('.windowContent form')[1]; // Get the second form
 if (newsForm) {
     newsForm.addEventListener('submit', async (event) => {
         event.preventDefault();

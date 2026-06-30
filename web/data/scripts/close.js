@@ -3,7 +3,7 @@ document.addEventListener('click', function(event) {
     if (event.target.classList.contains('exiticon')) {
         const windowElement = event.target.closest('.window');
         if (!windowElement) return;
-        const windowContent = windowElement.querySelector('.widowContent');
+        const windowContent = windowElement.querySelector('.windowContent');
         if (!windowContent) return;
 
         if (windowContent.style.display === 'none') {

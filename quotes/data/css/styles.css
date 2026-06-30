@@ -1,3 +1,9 @@
+@import url("../../../web/data/css/main.css");
+
+main{
+    flex-direction: column;
+}
+
 .quoteContainer{
     margin: 10px;
     margin-top: 15px;

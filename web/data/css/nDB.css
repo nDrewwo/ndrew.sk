@@ -2,77 +2,11 @@
 
 /* Page-specific styles below */
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    background-color: #494949;
-    color: #333;
-    padding: 20px;
-    max-width: 900px;
-    margin: auto;
-    display: flex;
-    flex-direction: column;
-}
-
-main {
-    display: flex;
-    justify-content: center;;
-}
-
-.window{
-    background-color: #333;
-    margin: 0.5rem;
-    margin-left: 0;
-    border: solid;
-    border-color: #7CB0FF;
-    color: #f3f4f5;
-    display: flex;
-    flex-direction: column;
-}
-
-.topbar {
-    background-color: #7CB0FF;
-    color: #000;
-    font-size: 14px;
-    height: 30px;
-    width: 100%;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;     
-}
-
-.exiticon{
-    margin-right: 5px;
-    cursor: pointer;
-    height: 24px;
-    width: 24px;
-}
-
-.nametag {
-    display: flex;
-    align-items: center;
-}
-
-.nametag img{
-    height: 24px;
-    width: 24px;
-    margin-left: 10px;
-}
-
-.windowContent{
-    height: fit-content;
-}
-
-#stats{
+#stats {
     padding: 0.5rem;
 }
 
-.nContainer{
+.nContainer {
     display: flex;
     align-items: center;
     margin: 0.5rem;
@@ -80,33 +14,33 @@ main {
     max-width: 280px;
 }
 
-.nContainer img{
+.nContainer img {
     width: auto;
     height: 150px;
     aspect-ratio: 3/4;
 }
 
-.nContainer h1{
+.nContainer h1 {
     font-size: large;
 }
 
-.nContainer h2{
+.nContainer h2 {
     font-size: medium;
 }
 
-.nInfo{
+.nInfo {
     margin-left: 0.5rem;
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
 
-.status{
-    color: #7CB0FF;
+.status {
+    color: var(--color-accent);
 }
 
-.blue{
-    color: #7CB0FF;
+.blue {
+    color: var(--color-accent);
 }
 
 #manga, #anime, #movies {
@@ -114,4 +48,3 @@ main {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: auto;
 }
-
