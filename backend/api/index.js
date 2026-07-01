@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -34,6 +35,7 @@ const pingRouter = require('./routes/ping');
 const cdnRouter = require('./routes/cdn');
 const poemsRouter = require('./routes/poems');
 const quotesRouter = require('./routes/quotes');
+const { cleanupExpiredSessions } = require('./utils/uploadSessions');
 
 // Use routers
 app.use('/', authRouter);
@@ -51,23 +53,7 @@ app.get('/', (req, res) => {
 
 // Add cleanup for abandoned upload sessions
 setInterval(() => {
-  if (global.uploadSessions) {
-    const now = Date.now();
-    const maxAge = 30 * 60 * 1000; // 30 minutes
-    
-    for (const [uploadId, session] of global.uploadSessions.entries()) {
-      if (now - session.createdAt > maxAge) {
-        // Clean up chunks directory
-        const fs = require('fs').promises;
-        const path = require('path');
-        const chunksDir = path.join(__dirname, '../cdn/public/temp_chunks', uploadId);
-        fs.rm(chunksDir, { recursive: true, force: true }).catch(() => {});
-        
-        // Remove session
-        global.uploadSessions.delete(uploadId);
-      }
-    }
-  }
+  cleanupExpiredSessions(path.join(__dirname, '../cdn/public/temp_chunks')).catch(() => {});
 }, 5 * 60 * 1000); // Run every 5 minutes
 
 app.listen(port, () => {
