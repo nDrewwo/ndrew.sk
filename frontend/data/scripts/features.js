@@ -84,14 +84,6 @@ async function loadBreakingNews() {
   }
 }
 
-async function loadNsfwQuotes() {
-  const quoteElement = document.getElementById('nsfwQuote');
-  if (quoteElement && window.getQuote) {
-    const nsfwQuote = window.getQuote(true); // Pass true for NSFW quotes
-    quoteElement.textContent = nsfwQuote;
-  }
-}
-
 
 async function initFeatures() {
   try {
@@ -102,14 +94,8 @@ async function initFeatures() {
       renderBreakingNews();
       loadBreakingNews();
     }
-
-    const nsfwQuotes = toggles.find(f => f.name === 'nsfwQuotes' && f.value === 1);
-    if (nsfwQuotes) {
-      loadNsfwQuotes();
-    }
-
+    
     // You can check here for more features :3
-
   } catch (err) {
     console.error('Feature load error:', err);
   }
