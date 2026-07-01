@@ -5,7 +5,7 @@ const loginEndpoint = isLocalhost
     : 'https://api.ndrew.sk/login';
 
 const protectedDash = isLocalhost 
-    ? 'http://localhost:5500/web/dash.html'
+    ? 'http://localhost:5500/frontend/dash.html'
     : 'https://ndrew.sk/dash';
 
 

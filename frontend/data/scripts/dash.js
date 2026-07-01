@@ -1,7 +1,7 @@
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
 const auth = isLocalhost 
-    ? 'http://localhost:5500/web/auth.html'
+    ? 'http://localhost:5500/frontend/auth.html'
     : 'https://ndrew.sk/auth';
 
 const validateToken = isLocalhost 
